@@ -25,6 +25,13 @@ def critic_agent(state: AgentState) -> AgentState:
             logger.error(state["error"])
             return state
 
+        if not state.get("patch", "").strip():
+            state["test_results"] = {"decision": "fail"}
+            state["fix_score"] = 0.0
+            state["critic_feedback"] = "No patch was produced — coder did not generate a change."
+            logger.warning("critic_agent: empty patch — scoring 0.0 without running tests")
+            return state
+
         # Baseline: stash patch → run tests → restore patch
         logger.info("running baseline tests (git stash)")
         run_shell("git stash", cwd=repo_path)

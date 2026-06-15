@@ -30,3 +30,57 @@ Proposed fix (week 3):
   Returns yes/no + reason. If no, treat as retry
   regardless of fix_score.
   This catches wrong-file patches even when tests pass.
+  STATUS: Implemented.
+
+---
+
+## Batch eval — runs 2–5 (psf/requests, SWE-bench Lite)
+
+Tasks: psf__requests-1963, 2148, 2317, 2674
+Pipeline: semantic check active, auto issue-body fetch
+
+Results:
+
+  psf__requests-1963  score=1.0  sessions.py   LIKELY CORRECT
+    Patch: req.copy() → resp.request.copy() in redirect loop.
+    FAIL_TO_PASS includes test_requests_are_updated_each_time.
+    Uses resp.request (actual sent request) not req (original).
+    Strongest result so far.
+
+  psf__requests-2148  score=0.9  adapters.py   PLAUSIBLE
+    Patch: adds socket.error to exception tuple.
+    Correct for Python 2 (socket.error not subclass of OSError).
+    Harmless in Python 3.3+ (socket.error is OSError alias).
+    FAIL_TO_PASS includes test_iter_content_handles_socket_error.
+
+  psf__requests-2317  score=0.891  compat.py   RISKY
+    Patch: builtin_str = str → def builtin_str(s): ...
+    Changes type alias to function. Breaks isinstance(x, builtin_str).
+    Score below 1.0 suggests regression. Likely false positive.
+
+  psf__requests-2674  score=0.891  n/a         PIPELINE BUG
+    Explorer/Planner returned broken_file="n/a".
+    Coder crashed: FileNotFoundError on repos/psf__requests/n/a.
+    Critic then ran on unpatched repo, scored 0.891 (all tests pass).
+    Two bugs triggered: coder crash + critic false positive on empty patch.
+
+New failure modes identified:
+
+  Failure 2 — broken_file="n/a"
+    Explorer could not identify the file. LLM returned literal "n/a".
+    Coder tried to open it as a path and crashed.
+    Fix: guard in coder — treat n/a/none/unknown as hard fail immediately.
+    STATUS: Implemented.
+
+  Failure 3 — critic scores empty patch as 0.891
+    When coder fails and produces no patch, critic still runs tests.
+    Unpatched repo passes all 258 tests → high fix_score (false positive).
+    Fix: critic checks for empty patch field, scores 0.0 without running tests.
+    STATUS: Implemented.
+
+Running tallies (5 tasks):
+  Completed without error : 4/5
+  Approved (score >= 0.6) : 4/5
+  Confirmed false positives: 2 (1734, 2317)
+  Likely correct          : 2 (1963, 2148)
+  Hard pipeline failures  : 1 (2674)

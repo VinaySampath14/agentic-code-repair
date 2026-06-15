@@ -19,8 +19,9 @@ def coder_agent(state: AgentState) -> AgentState:
         repo_path = _repo_path(state["issue_url"])
         _ensure_repo_cloned(repo_path, state["issue_url"])
 
-        if not state.get("broken_file"):
-            state["error"] = "coder_agent: broken_file is empty — no target to patch"
+        broken_file = state.get("broken_file", "").strip()
+        if not broken_file or broken_file.lower() in ("n/a", "none", "unknown"):
+            state["error"] = f"coder_agent: broken_file is '{broken_file}' — Explorer could not identify the file to patch"
             logger.error(state["error"])
             return state
 
