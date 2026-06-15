@@ -34,6 +34,8 @@ def planner_agent(state: AgentState) -> AgentState:
             logger.warning(f"GitHub API failed for repo structure ({type(e).__name__}) — using local clone")
             repo_structure = _local_repo_structure(repo_path)
 
+        repo_structure = _trim_repo_structure(repo_structure)
+
         logger.info("searching codebase")
         try:
             search_results = search_codebase(
@@ -97,6 +99,35 @@ def _parse_repo(issue_url: str) -> str:
 def _repo_path(issue_url: str) -> str:
     parts = issue_url.rstrip("/").split("/")
     return os.path.join("repos", f"{parts[3]}__{parts[4]}")
+
+
+_SKIP_DIRS = {
+    "tests", "test", "docs", "doc", "build", "dist", ".git",
+    "node_modules", "__pycache__", ".tox", ".eggs", "venv",
+    "site-packages", "examples", "benchmarks", "fixtures",
+}
+_MAX_STRUCTURE_LINES = 300
+
+
+def _trim_repo_structure(raw: str) -> str:
+    """Keep only source .py files, drop noise dirs, cap at 300 lines."""
+    lines = []
+    for line in raw.splitlines():
+        parts = line.replace("\\", "/").split("/")
+        # Skip if any path component is a noise dir
+        if any(p.lower() in _SKIP_DIRS for p in parts[:-1]):
+            continue
+        # Keep only Python source files
+        if not line.endswith(".py"):
+            continue
+        lines.append(line)
+
+    if len(lines) > _MAX_STRUCTURE_LINES:
+        lines = lines[:_MAX_STRUCTURE_LINES]
+        lines.append(f"... ({len(raw.splitlines())} total entries, trimmed to {_MAX_STRUCTURE_LINES})")
+
+    logger.info(f"repo structure trimmed to {len(lines)} lines")
+    return "\n".join(lines)
 
 
 def _local_repo_structure(repo_path: str) -> str:
