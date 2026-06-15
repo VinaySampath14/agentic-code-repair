@@ -84,3 +84,50 @@ Running tallies (5 tasks):
   Confirmed false positives: 2 (1734, 2317)
   Likely correct          : 2 (1963, 2148)
   Hard pipeline failures  : 1 (2674)
+
+---
+
+## Batch eval — runs 6–8 (psf/requests, SWE-bench Lite)
+
+Tasks: psf__requests-2674 (retry), 3362, 863
+
+  psf__requests-2674  score=0.90  exceptions.py  NEEDS VERIFY
+    Previously crashed on broken_file="n/a". Guard now working.
+    Patched Timeout.__init__ in exceptions.py.
+    File% unknown until gold patch path confirmed.
+
+  psf__requests-3362  score=0.00  (no patch)     PIPELINE FAILURE
+    Coder: "old_code not found in file" on all 3 attempts.
+    LLM hallucinated old_code that doesn't exist verbatim in file.
+    Self-correction loop exhausted without a single successful match.
+    Empty patch guard correctly scored 0.00 (no false positive).
+
+  psf__requests-863   score=1.00  models.py      LIKELY CORRECT
+    Patched register_hook to handle list of hooks.
+    Plausible for a hooks-merging bug in PreparedRequest.
+
+New failure mode identified:
+
+  Failure 4 — old_code not found (verbatim mismatch)
+    LLM generates old_code that is close but not verbatim.
+    All 3 self-correction attempts fail.
+    Coder produces no patch. Critic correctly scores 0.00.
+    Root cause: LLM paraphrases or reformats code instead of
+    copying it exactly from the file contents we provide.
+    Potential fix: include line numbers in the file excerpt shown
+    to the Coder, and instruct it to copy the block exactly as-is.
+
+Metric fix:
+  File% was always 0% due to path prefix mismatch.
+  Our patches: src/requests/models.py
+  Gold patches: requests/models.py
+  Fixed patch_similarity() to strip src/, lib/, source/ prefixes
+  before comparing. File% now meaningful.
+
+Running tallies (8 tasks):
+  Completed without error : 6/8
+  Approved (score >= 0.6) : 6/8
+  Confirmed false positives: 2 (1734, 2317)
+  Likely correct          : 3 (1963, 2148, 863)
+  Hard pipeline failures  : 2 (2674 crash fixed; 3362 verbatim fail)
+  Needs verification      : 1 (2674 retry)
