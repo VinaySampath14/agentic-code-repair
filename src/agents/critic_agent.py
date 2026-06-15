@@ -69,12 +69,23 @@ def critic_agent(state: AgentState) -> AgentState:
         else:
             decision = "retry"
 
-        # Actionable feedback only when Coder needs to retry
-        critic_feedback = ""
+        # Semantic check — only when tests pass, before we approve
+        semantic_result = {}
         llm_calls = 0
-        if decision in ("retry", "fail"):
-            critic_feedback = _generate_feedback(state, post, fix_score, decision, repo_path)
+        critic_feedback = ""
+        if decision == "approve":
+            semantic_result = _semantic_check(state)
             llm_calls = 1
+            if not semantic_result.get("addresses_root_cause", True):
+                reason = semantic_result.get("reason", "patch does not address root cause")
+                logger.warning(f"semantic check failed: {reason}")
+                decision = "retry" if state["retry_count"] < CODER_MAX_RETRIES else "fail"
+                critic_feedback = f"Semantic check: {reason}"
+
+        # Actionable feedback only when Coder needs to retry
+        if decision in ("retry", "fail") and not critic_feedback:
+            critic_feedback = _generate_feedback(state, post, fix_score, decision, repo_path)
+            llm_calls += 1
 
         # Reset working tree so coder always starts from a clean state on retry
         if decision in ("retry", "fail"):
@@ -96,17 +107,18 @@ def critic_agent(state: AgentState) -> AgentState:
         logger.info(f"fix_score={fix_score} decision={decision}")
 
         state["trace"].append({
-            "agent":         "critic",
-            "timestamp":     datetime.utcnow().isoformat(),
-            "input_fields":  ["patch", "changed_files", "broken_file"],
-            "output_fields": ["test_results", "fix_score", "critic_feedback"],
-            "llm_calls":     llm_calls,
-            "tool_calls":    ["run_pytest", "run_linter", "run_shell"],
-            "tests_passed":  tests_passed,
-            "tests_failed":  tests_failed,
-            "tests_before":  tests_before,
-            "fix_score":     fix_score,
-            "decision":      decision,
+            "agent":              "critic",
+            "timestamp":          datetime.utcnow().isoformat(),
+            "input_fields":       ["patch", "changed_files", "broken_file"],
+            "output_fields":      ["test_results", "fix_score", "critic_feedback"],
+            "llm_calls":          llm_calls,
+            "tool_calls":         ["run_pytest", "run_linter", "run_shell"],
+            "tests_passed":       tests_passed,
+            "tests_failed":       tests_failed,
+            "tests_before":       tests_before,
+            "fix_score":          fix_score,
+            "decision":           decision,
+            "semantic_check":     semantic_result,
         })
 
     except Exception as e:
@@ -114,6 +126,29 @@ def critic_agent(state: AgentState) -> AgentState:
         state["error"] = f"critic_agent failed: {str(e)}"
 
     return state
+
+
+def _semantic_check(state: AgentState) -> dict:
+    prompt_template = open("prompts/critic_semantic.txt").read()
+    prompt = prompt_template.format(
+        issue_body=state["issue_body"],
+        patch=state["patch"],
+        changed_files=state["changed_files"],
+    )
+
+    logger.info("semantic check — calling OpenAI")
+    response = _client.chat.completions.create(
+        model=ACTIVE_MODEL["model"],
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        max_tokens=200,
+        timeout=30.0,
+    )
+
+    try:
+        return json.loads(response.choices[0].message.content)
+    except (json.JSONDecodeError, KeyError):
+        return {"addresses_root_cause": True, "reason": "parse error — defaulting to approve"}
 
 
 def _generate_feedback(
