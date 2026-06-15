@@ -1,0 +1,11 @@
+--- a/src/requests/sessions.py
++++ b/src/requests/sessions.py
+@@ -91,7 +91,7 @@
+     if not (
+         isinstance(session_setting, Mapping) and isinstance(request_setting, Mapping)
+     ):
+-        if request_setting is True and session_setting is False:
++        if session_setting is False:
+             return session_setting
+         return request_setting
+ 

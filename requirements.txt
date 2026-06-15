@@ -1,0 +1,36 @@
+# Core orchestration
+langgraph
+langchain-core
+langchain-openai
+
+# OpenAI API
+openai
+
+# GitHub integration
+PyGithub
+
+# Observability
+langfuse
+
+# Experiment tracking
+mlflow
+
+# Web framework
+fastapi
+uvicorn
+
+# HTTP client
+httpx
+
+# Testing
+pytest
+pytest-asyncio
+
+# Linting (used by Critic agent)
+ruff
+
+# Env management
+python-dotenv
+
+# Data
+pydantic
