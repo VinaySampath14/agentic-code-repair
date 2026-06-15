@@ -3,18 +3,21 @@ import json
 import logging
 import os
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.shell_tools import run_shell
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 _MAX_SELF_CORRECTIONS = 3
 
 
+@observe(name="coder-agent")
 def coder_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_path = _repo_path(state["issue_url"])
         _ensure_repo_cloned(repo_path, state["issue_url"])

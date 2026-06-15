@@ -2,11 +2,11 @@ import json
 import logging
 import os
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, EXPLORER_MAX_FILES, EXPLORER_MAX_ITERATIONS
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.github_tools import read_file
 from src.tools.shell_tools import get_imports
 
@@ -50,7 +50,10 @@ def _read_file_with_fallback(repo_full_name: str, path: str, repo_path: str) -> 
     return read_file(repo_full_name, path)
 
 
+@observe(name="explorer-agent")
 def explorer_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_full_name = _parse_repo(state["issue_url"])
         repo_path = _repo_path(state["issue_url"])

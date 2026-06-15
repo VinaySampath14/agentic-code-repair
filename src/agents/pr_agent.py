@@ -3,18 +3,21 @@ import logging
 import os
 from datetime import datetime
 from github import Github, GithubException
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, GITHUB_TOKEN
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.github_tools import create_pr
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 _gh = Github(GITHUB_TOKEN)
 
 
+@observe(name="pr-agent")
 def pr_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         content = _generate_pr_content(state)
         pr_title = content["pr_title"]

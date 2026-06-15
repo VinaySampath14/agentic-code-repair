@@ -3,17 +3,20 @@ import logging
 import os
 import subprocess
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.github_tools import get_repo_structure, search_codebase
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+@observe(name="planner-agent")
 def planner_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_full_name = _parse_repo(state["issue_url"])
         repo_path = _repo_path(state["issue_url"])

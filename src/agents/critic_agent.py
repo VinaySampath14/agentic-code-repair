@@ -2,18 +2,21 @@ import json
 import logging
 import os
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, FIX_SCORE_THRESHOLD, CODER_MAX_RETRIES
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.test_tools import run_pytest, run_linter
 from src.tools.shell_tools import run_shell
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+@observe(name="critic-agent")
 def critic_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_path = _repo_path(state["issue_url"])
 
