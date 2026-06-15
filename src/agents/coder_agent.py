@@ -202,10 +202,11 @@ _PATH_STRIP_PREFIXES = ("src/", "lib/", "source/")
 
 
 def _resolve_local_path(repo_path: str, broken_file: str) -> str:
-    """Return the on-disk path for broken_file, trying stripped prefixes at old base_commits."""
+    """Return the on-disk path for broken_file, trying prefix strips then basename search."""
     candidate = os.path.join(repo_path, broken_file)
     if os.path.exists(candidate):
         return candidate
+    # Try stripping common directory prefixes (src/, lib/, source/)
     for prefix in _PATH_STRIP_PREFIXES:
         if broken_file.startswith(prefix):
             stripped = broken_file[len(prefix):]
@@ -213,6 +214,18 @@ def _resolve_local_path(repo_path: str, broken_file: str) -> str:
             if os.path.exists(alt):
                 logger.info(f"path fallback: {broken_file} -> {stripped}")
                 return alt
+    # Try basename search — handles renamed files (e.g. _ridge.py -> ridge.py)
+    basename = os.path.basename(broken_file)
+    dirname  = os.path.dirname(broken_file)
+    for root, _dirs, files in os.walk(repo_path):
+        for fname in files:
+            if fname == basename or fname == basename.lstrip("_"):
+                found = os.path.join(root, fname)
+                rel = os.path.relpath(found, repo_path).replace("\\", "/")
+                # Must be in roughly the same directory
+                if os.path.dirname(rel) == dirname or os.path.dirname(rel).endswith(os.path.basename(dirname)):
+                    logger.info(f"basename fallback: {broken_file} -> {rel}")
+                    return found
     return candidate  # return original so FileNotFoundError is raised with correct path
 
 

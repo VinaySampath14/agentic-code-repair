@@ -80,7 +80,7 @@ def run_task(task: dict) -> dict:
         text=True,
         encoding="utf-8",
         errors="replace",
-        timeout=300,
+        timeout=600,
     )
     elapsed = round(time.time() - start, 1)
 
@@ -226,8 +226,8 @@ def main() -> None:
                 "instance_id": task["instance_id"],
                 "repo":        task["repo"],
                 "fix_score":   0.0,
-                "error":       "timeout (300s)",
-                "elapsed_s":   300,
+                "error":       "timeout (600s)",
+                "elapsed_s":   600,
                 "gold_patch":  task.get("patch", ""),
             })
         except Exception as e:

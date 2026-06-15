@@ -13,9 +13,37 @@ from src.tools.shell_tools import get_imports
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+_PATH_STRIP_PREFIXES = ("src/", "lib/", "source/")
+
+
+def _resolve_local(repo_path: str, path: str) -> str:
+    """Return the on-disk path for a file, trying prefix strips then basename search."""
+    candidate = os.path.join(repo_path, path)
+    if os.path.isfile(candidate):
+        return candidate
+    for prefix in _PATH_STRIP_PREFIXES:
+        if path.startswith(prefix):
+            alt = os.path.join(repo_path, path[len(prefix):])
+            if os.path.isfile(alt):
+                logger.info(f"explorer path fallback: {path} -> {path[len(prefix):]}")
+                return alt
+    # Basename search for renamed files (e.g. _ridge.py -> ridge.py)
+    basename = os.path.basename(path)
+    dirname  = os.path.dirname(path)
+    for root, _dirs, files in os.walk(repo_path):
+        for fname in files:
+            if fname == basename or fname == basename.lstrip("_"):
+                found = os.path.join(root, fname)
+                rel = os.path.relpath(found, repo_path).replace("\\", "/")
+                if os.path.dirname(rel) == dirname or os.path.dirname(rel).endswith(os.path.basename(dirname)):
+                    logger.info(f"explorer basename fallback: {path} -> {rel}")
+                    return found
+    return candidate
+
+
 def _read_file_with_fallback(repo_full_name: str, path: str, repo_path: str) -> str:
-    """Try local clone first, fall back to GitHub API."""
-    local = os.path.join(repo_path, path)
+    """Try local clone first (with prefix fallback for old base_commits), then GitHub API."""
+    local = _resolve_local(repo_path, path)
     if os.path.isfile(local):
         with open(local, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
