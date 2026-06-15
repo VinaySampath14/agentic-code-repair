@@ -1,0 +1,36 @@
+# Core orchestration
+langgraph==0.2.50
+langchain-core==0.3.25
+langchain-anthropic==0.3.7
+
+# Anthropic API
+anthropic==0.40.0
+
+# GitHub integration
+PyGithub==2.5.0
+
+# Observability
+langfuse==2.57.3
+
+# Experiment tracking
+mlflow==2.19.0
+
+# Web framework
+fastapi==0.115.6
+uvicorn==0.32.1
+
+# HTTP client
+httpx==0.28.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+
+# Linting (used by Critic agent)
+ruff==0.8.4
+
+# Env management
+python-dotenv==1.0.1
+
+# Data
+pydantic==2.10.4
