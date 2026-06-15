@@ -8,9 +8,9 @@ EVAL_MODE = os.getenv("EVAL_MODE", "false").lower() == "true"
 
 MODEL_CONFIG = {
     "paid": {
-        "base_url": "https://api.anthropic.com",
-        "model": "claude-sonnet-4-6",
-        "api_key": os.getenv("ANTHROPIC_API_KEY"),
+        "base_url": "https://api.openai.com/v1",
+        "model": "gpt-4o",
+        "api_key": os.getenv("OPENAI_API_KEY"),
     },
     "local": {
         "base_url": "http://localhost:8000/v1",
@@ -21,6 +21,7 @@ MODEL_CONFIG = {
 
 ACTIVE_MODEL = MODEL_CONFIG[MODEL_MODE]
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")

@@ -1,19 +1,22 @@
-import anthropic
+from openai import OpenAI
 from src.config import ACTIVE_MODEL, MODEL_MODE
 
 def test_connection():
     print(f"Mode: {MODEL_MODE}")
     print(f"Model: {ACTIVE_MODEL['model']}")
 
-    client = anthropic.Anthropic(api_key=ACTIVE_MODEL["api_key"])
+    client = OpenAI(
+        api_key=ACTIVE_MODEL["api_key"],
+        base_url=ACTIVE_MODEL["base_url"],
+    )
 
-    message = client.messages.create(
+    response = client.chat.completions.create(
         model=ACTIVE_MODEL["model"],
         max_tokens=64,
         messages=[{"role": "user", "content": "Reply with: connection successful"}],
     )
 
-    print(f"Response: {message.content[0].text}")
+    print(f"Response: {response.choices[0].message.content}")
     print("API connection OK")
 
 if __name__ == "__main__":
