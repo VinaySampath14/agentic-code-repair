@@ -1,9 +1,12 @@
 import json
+import logging
 import os
 from datetime import datetime
 from github import Github, GithubException
 from openai import OpenAI
 from src.state import AgentState
+
+logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, GITHUB_TOKEN
 from src.tools.github_tools import create_pr
 
@@ -75,10 +78,12 @@ def _generate_pr_content(state: AgentState) -> dict:
         instance_id=state["instance_id"],
     )
 
+    logger.info("calling OpenAI for PR content")
     response = _client.chat.completions.create(
         model=ACTIVE_MODEL["model"],
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
+        timeout=30.0,
     )
 
     result = json.loads(response.choices[0].message.content)

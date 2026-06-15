@@ -1,7 +1,10 @@
 import json
+import logging
 from datetime import datetime
 from openai import OpenAI
 from src.state import AgentState
+
+logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL
 from src.tools.github_tools import get_repo_structure, search_codebase
 
@@ -11,7 +14,9 @@ _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_ur
 def planner_agent(state: AgentState) -> AgentState:
     try:
         repo_full_name = _parse_repo(state["issue_url"])
+        logger.info(f"fetching repo structure for {repo_full_name}")
         repo_structure = get_repo_structure(repo_full_name)
+        logger.info("searching codebase")
 
         search_results = search_codebase(
             repo_full_name,
@@ -26,10 +31,12 @@ def planner_agent(state: AgentState) -> AgentState:
             search_results=search_results,
         )
 
+        logger.info("calling OpenAI")
         response = _client.chat.completions.create(
             model=ACTIVE_MODEL["model"],
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
+            timeout=30.0,
         )
 
         raw = response.choices[0].message.content
@@ -41,6 +48,7 @@ def planner_agent(state: AgentState) -> AgentState:
         state["affected_files"] = result["affected_files"]
         state["complexity"] = result["complexity"]
         state["planner_confidence"] = result["confidence"]
+        logger.info(f"done — {len(result['affected_files'])} files, confidence={result['confidence']}")
 
         state["trace"].append({
             "agent":         "planner",

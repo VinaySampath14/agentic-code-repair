@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 from datetime import datetime
 from openai import OpenAI
 from src.state import AgentState
+
+logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL
 from src.tools.patch_tools import apply_patch, validate_patch_syntax
 from src.tools.shell_tools import run_shell
@@ -69,10 +72,12 @@ def _generate_and_verify(
     current_prompt = prompt
 
     for attempt in range(_MAX_SELF_CORRECTIONS):
+        logger.info(f"attempt {attempt + 1}/{_MAX_SELF_CORRECTIONS} — calling OpenAI")
         response = _client.chat.completions.create(
             model=ACTIVE_MODEL["model"],
             messages=[{"role": "user", "content": current_prompt}],
             response_format={"type": "json_object"},
+            timeout=30.0,
         )
 
         raw = response.choices[0].message.content

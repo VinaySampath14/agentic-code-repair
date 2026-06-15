@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 from datetime import datetime
 from openai import OpenAI
 from src.state import AgentState
+
+logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, FIX_SCORE_THRESHOLD, CODER_MAX_RETRIES
 from src.tools.test_tools import run_pytest, run_linter
 from src.tools.shell_tools import run_shell
@@ -15,10 +18,13 @@ def critic_agent(state: AgentState) -> AgentState:
         repo_path = _repo_path(state["issue_url"])
 
         # Baseline: stash patch → run tests → restore patch
-        stash = run_shell("git stash", cwd=repo_path)
+        logger.info("running baseline tests (git stash)")
+        run_shell("git stash", cwd=repo_path)
         baseline = run_pytest(repo_path)
         tests_before = baseline.get("passed", 0)
+        logger.info(f"baseline: {tests_before} passing")
         run_shell("git stash pop", cwd=repo_path)
+        logger.info("running post-patch tests")
 
         # Post-patch results
         post = run_pytest(repo_path)
@@ -73,6 +79,7 @@ def critic_agent(state: AgentState) -> AgentState:
         }
         state["fix_score"] = fix_score
         state["critic_feedback"] = critic_feedback
+        logger.info(f"fix_score={fix_score} decision={decision}")
 
         state["trace"].append({
             "agent":         "critic",
@@ -121,10 +128,12 @@ def _generate_feedback(
         "Do not write a generic message. The Coder reads this on its next attempt."
     )
 
+    logger.info("generating feedback — calling OpenAI")
     response = _client.chat.completions.create(
         model=ACTIVE_MODEL["model"],
         messages=[{"role": "user", "content": prompt}],
         max_tokens=150,
+        timeout=30.0,
     )
 
     return response.choices[0].message.content.strip()

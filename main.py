@@ -2,6 +2,9 @@ import argparse
 import json
 from src.graph import build_graph
 from src.state import initial_state
+from src.logger import setup_logging
+
+setup_logging("INFO")
 
 
 def main():

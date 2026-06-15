@@ -1,7 +1,10 @@
 import json
+import logging
 from datetime import datetime
 from openai import OpenAI
 from src.state import AgentState
+
+logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, EXPLORER_MAX_FILES, EXPLORER_MAX_ITERATIONS
 from src.tools.github_tools import read_file
 from src.tools.shell_tools import get_imports
@@ -41,9 +44,11 @@ def explorer_agent(state: AgentState) -> AgentState:
             budget_remaining = EXPLORER_MAX_FILES - len(file_contents)
             for path in batch[:budget_remaining]:
                 try:
+                    logger.info(f"reading {path}")
                     content = read_file(repo_full_name, path)
                     file_contents[path] = content
                 except Exception:
+                    logger.warning(f"skipped {path} (not found)")
                     pass  # file not found in repo — skip silently
 
         # Final LLM call: extract structured findings from everything read
@@ -98,6 +103,7 @@ def _decide_next(state: AgentState, file_contents: dict[str, str]) -> dict:
         "Only list files directly relevant to the bug."
     )
 
+    logger.info(f"_decide_next: calling OpenAI (files read so far: {len(file_contents)})")
     response = _client.chat.completions.create(
         model=ACTIVE_MODEL["model"],
         messages=[
@@ -105,6 +111,7 @@ def _decide_next(state: AgentState, file_contents: dict[str, str]) -> dict:
             {"role": "user", "content": user},
         ],
         response_format={"type": "json_object"},
+        timeout=30.0,
     )
 
     return json.loads(response.choices[0].message.content)
@@ -124,10 +131,12 @@ def _extract_findings(state: AgentState, file_contents: dict[str, str]) -> dict:
         budget_remaining=budget_remaining,
     )
 
+    logger.info(f"_extract_findings: calling OpenAI ({len(file_contents)} files read)")
     response = _client.chat.completions.create(
         model=ACTIVE_MODEL["model"],
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
+        timeout=30.0,
     )
 
     result = json.loads(response.choices[0].message.content)
