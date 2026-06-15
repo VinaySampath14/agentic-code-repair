@@ -3,26 +3,43 @@ import os
 import subprocess
 
 
-_FAST_TEST_FILES = [
-    "tests/test_utils.py",
-    "tests/test_structures.py",
-    "tests/test_packages.py",
-    "tests/test_help.py",
-]
+_FAST_TEST_FILES: dict[str, list[str]] = {
+    "psf__requests": [
+        "tests/test_utils.py",
+        "tests/test_structures.py",
+        "tests/test_packages.py",
+        "tests/test_help.py",
+    ],
+    "pylint-dev__pylint": [
+        "tests/test_pragma_parser.py",
+        "tests/test_config.py",
+        "tests/lint/test_codeop.py",
+        "tests/test_functional.py",
+    ],
+}
+
+
+def _repo_key(cwd: str) -> str:
+    """Derive owner__repo key from a repo_path like repos/psf__requests."""
+    return os.path.basename(os.path.normpath(cwd))
 
 
 def run_pytest(cwd: str, test_path: str = "") -> dict:
-    # Add src/ to PYTHONPATH so tests import the local patched version
     env = os.environ.copy()
     src_dir = os.path.join(os.path.abspath(cwd), "src")
     existing = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{src_dir}{os.pathsep}{existing}" if existing else src_dir
 
-    # Only run fast non-network tests when no path specified
     if not test_path:
-        existing_files = [f for f in _FAST_TEST_FILES
-                         if os.path.exists(os.path.join(cwd, f))]
-        test_path = " ".join(existing_files) if existing_files else "tests/"
+        repo_key = _repo_key(cwd)
+        candidates = _FAST_TEST_FILES.get(repo_key, [])
+        existing_files = [f for f in candidates if os.path.exists(os.path.join(cwd, f))]
+
+        if existing_files:
+            test_path = " ".join(existing_files)
+        else:
+            # Unknown repo — run tests/ but stop on first failure and cap per-test time
+            test_path = "tests/ -x --timeout=30" if os.path.isdir(os.path.join(cwd, "tests")) else "."
 
     result = subprocess.run(
         f"pytest {test_path} --tb=short -q",
@@ -34,7 +51,6 @@ def run_pytest(cwd: str, test_path: str = "") -> dict:
         env=env,
     )
 
-    # Try to parse plain pytest output for passed/failed counts
     stdout = result.stdout + result.stderr
     passed = 0
     failed = 0
@@ -42,7 +58,7 @@ def run_pytest(cwd: str, test_path: str = "") -> dict:
         if " passed" in line or " failed" in line or " error" in line:
             parts = line.strip().split()
             for i, p in enumerate(parts):
-                token = p.rstrip(",")  # strip trailing commas: "passed," → "passed"
+                token = p.rstrip(",")
                 if token == "passed" and i > 0:
                     try:
                         passed = int(parts[i - 1])
