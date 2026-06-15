@@ -19,9 +19,17 @@ def _get_repo(repo_full_name: str):
                 raise
 
 
-def read_file(repo_full_name: str, path: str, ref: str = "main") -> str:
-    logger.debug(f"read_file: {repo_full_name}/{path}@{ref}")
+def _default_branch(repo_full_name: str) -> str:
     repo = _get_repo(repo_full_name)
+    branch = repo.default_branch
+    logger.debug(f"default branch for {repo_full_name}: {branch}")
+    return branch
+
+
+def read_file(repo_full_name: str, path: str, ref: str = None) -> str:
+    repo = _get_repo(repo_full_name)
+    ref = ref or repo.default_branch
+    logger.debug(f"read_file: {repo_full_name}/{path}@{ref}")
     for attempt in range(3):
         try:
             content = repo.get_contents(path, ref=ref)
@@ -33,10 +41,10 @@ def read_file(repo_full_name: str, path: str, ref: str = "main") -> str:
                 raise
 
 
-def get_repo_structure(repo_full_name: str, ref: str = "main") -> str:
-    """Single GitHub API call using the Git tree endpoint — no recursive traversal."""
-    logger.info(f"get_repo_structure: {repo_full_name}@{ref} (single tree API call)")
+def get_repo_structure(repo_full_name: str, ref: str = None) -> str:
     repo = _get_repo(repo_full_name)
+    ref = ref or repo.default_branch
+    logger.info(f"get_repo_structure: {repo_full_name}@{ref} (single tree API call)")
     try:
         tree = repo.get_git_tree(ref, recursive=True)
         lines = [item.path for item in tree.tree if item.type in ("blob", "tree")]
@@ -62,9 +70,10 @@ def search_codebase(repo_full_name: str, query: str) -> list[str]:
                 raise
 
 
-def create_pr(repo_full_name: str, title: str, body: str, head: str, base: str = "main") -> str:
-    logger.info(f"create_pr: {repo_full_name} head={head}")
+def create_pr(repo_full_name: str, title: str, body: str, head: str, base: str = None) -> str:
     repo = _get_repo(repo_full_name)
+    base = base or repo.default_branch
+    logger.info(f"create_pr: {repo_full_name} head={head} base={base}")
     for attempt in range(3):
         try:
             pr = repo.create_pull(title=title, body=body, head=head, base=base, draft=True)

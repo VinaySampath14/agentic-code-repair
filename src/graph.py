@@ -9,6 +9,10 @@ from src.agents.pr_agent       import pr_agent
 
 
 def route_after_explorer(state: AgentState) -> str:
+    # Cap replans at 2 to prevent infinite loops
+    replan_count = sum(1 for t in state.get("trace", []) if t.get("agent") == "planner")
+    if replan_count >= 2:
+        return "proceed"
     if state.get("explorer_confidence") == "low":
         return "replan"
     if state.get("error"):
