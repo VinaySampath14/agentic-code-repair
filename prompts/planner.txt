@@ -6,10 +6,12 @@ the bug. You do not write code. You do not fix anything.
 You only plan.
 
 CONTEXT
-Issue title: {issue_title}
+Issue URL: {issue_url}
 Issue body: {issue_body}
 Repository structure:
 {repo_structure}
+Code search results:
+{search_results}
 
 INSTRUCTIONS
 1. Read the issue carefully. Identify the core problem

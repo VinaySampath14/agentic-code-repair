@@ -13,11 +13,17 @@ def planner_agent(state: AgentState) -> AgentState:
         repo_full_name = _parse_repo(state["issue_url"])
         repo_structure = get_repo_structure(repo_full_name)
 
+        search_results = search_codebase(
+            repo_full_name,
+            state["issue_body"][:200]
+        )
+
         prompt_template = open("prompts/planner.txt").read()
         prompt = prompt_template.format(
-            issue_title=state["issue_url"],
+            issue_url=state["issue_url"],
             issue_body=state["issue_body"],
             repo_structure=repo_structure,
+            search_results=search_results,
         )
 
         response = _client.chat.completions.create(
@@ -42,7 +48,7 @@ def planner_agent(state: AgentState) -> AgentState:
             "input_fields":  ["issue_body", "issue_url"],
             "output_fields": ["affected_files", "core_problem", "complexity", "planner_confidence"],
             "llm_calls":     1,
-            "tool_calls":    ["get_repo_structure"],
+            "tool_calls":    ["get_repo_structure", "search_codebase"],
             "confidence":    state["planner_confidence"],
         })
 
