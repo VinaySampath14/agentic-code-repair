@@ -1,5 +1,5 @@
 """
-run_eval.py — Run the pipeline against SWE-bench Lite tasks and report results.
+run_eval.py -- Run the pipeline against SWE-bench Lite tasks and report results.
 
 Usage:
     python run_eval.py                              # 5 tasks from psf/requests
@@ -46,7 +46,7 @@ def run_task(task: dict) -> dict:
     repo              = task["repo"]
     problem_statement = task["problem_statement"]
 
-    # Derive a usable issue URL — repo identity is what matters for cloning
+    # Derive a usable issue URL -- repo identity is what matters for cloning
     number    = instance_id.split("-")[-1]
     issue_url = f"https://github.com/{repo}/issues/{number}"
 
@@ -55,15 +55,20 @@ def run_task(task: dict) -> dict:
     print(f"Repo    : {repo}")
     print(f"{'='*60}")
 
+    base_commit = task.get("base_commit", "")
+    cmd = [
+        sys.executable, "main.py",
+        "--issue-url",   issue_url,
+        "--issue-body",  problem_statement,
+        "--instance-id", instance_id,
+        "--eval",
+    ]
+    if base_commit:
+        cmd += ["--base-commit", base_commit]
+
     start = time.time()
     proc  = subprocess.run(
-        [
-            sys.executable, "main.py",
-            "--issue-url",   issue_url,
-            "--issue-body",  problem_statement,
-            "--instance-id", instance_id,
-            "--eval",
-        ],
+        cmd,
         capture_output=True,
         text=True,
         timeout=300,
@@ -158,7 +163,7 @@ def print_summary(results: list[dict]) -> None:
     avg      = sum(scores) / len(scores) if scores else 0.0
     print("-" * 75)
     print(
-        f"Tasks: {len(results)}  |  Approved (score≥0.6): {approved}/{len(results)}  "
+        f"Tasks: {len(results)}  |  Approved (score>=0.6): {approved}/{len(results)}  "
         f"|  Avg score: {avg:.3f}"
     )
     print("=" * 75)
@@ -177,7 +182,7 @@ def print_summary(results: list[dict]) -> None:
 
     with open(RESULTS_PATH, "w") as f:
         json.dump(list(by_id.values()), f, indent=2)
-    print(f"\nResults saved → {RESULTS_PATH}")
+    print(f"\nResults saved -> {RESULTS_PATH}")
 
 
 def main() -> None:
@@ -194,13 +199,15 @@ def main() -> None:
 
     tasks = load_tasks(args.n, repo=repo, task_ids=task_ids)
     if not tasks:
-        print("No tasks to run — all already predicted or no matches found.")
+        print("No tasks to run -- all already predicted or no matches found.")
         return
 
     print(f"Running {len(tasks)} task(s)...\n")
 
     results = []
-    for task in tasks:
+    for i, task in enumerate(tasks):
+        if i > 0:
+            time.sleep(15)  # avoid TPM rate limit between tasks
         try:
             results.append(run_task(task))
         except subprocess.TimeoutExpired:
@@ -214,7 +221,7 @@ def main() -> None:
                 "gold_patch":  task.get("patch", ""),
             })
         except Exception as e:
-            print(f"ERROR: {task['instance_id']} — {e}")
+            print(f"ERROR: {task['instance_id']} -- {e}")
             results.append({
                 "instance_id": task["instance_id"],
                 "repo":        task["repo"],

@@ -106,7 +106,10 @@ def _generate_and_verify(
                 f"old_code not found in {broken_file}. "
                 "Copy old_code VERBATIM from the file — every character must match exactly."
             )
-            logger.warning(f"attempt {attempt + 1} failed: old_code not found in file")
+            logger.warning(
+                f"attempt {attempt + 1} failed: old_code not found in file\n"
+                f"  old_code attempted ({len(old_code)} chars): {repr(old_code[:200])}"
+            )
             self_correction_attempts += 1
             current_prompt = _correction_prompt(current_prompt, old_code, new_code, msg, original)
             continue
@@ -209,20 +212,19 @@ def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
 
             # Focus on broken_function if file is large
             focused = _focus_on_function(raw_lines, state.get("broken_function", ""))
-            numbered = _number_lines(focused["lines"], start=focused["start"])
+            raw_content = "".join(focused["lines"])
 
             note = ""
             if focused["truncated"]:
                 note = (
-                    f"(showing lines {focused['start']}–{focused['end']} of "
-                    f"{len(raw_lines)} total — full file available if needed)\n"
+                    f"(showing lines {focused['start']}-{focused['end']} of "
+                    f"{len(raw_lines)} total)\n"
                 )
 
             parts.append(
-                f"### {broken_file} (EXACT LOCAL CONTENT — line numbers shown for reference only)\n"
-                f"{note}"
-                "CRITICAL: old_code must be verbatim text from this file WITHOUT line numbers.\n\n"
-                f"{numbered}"
+                f"### {broken_file} (EXACT LOCAL CONTENT — copy old_code verbatim from here)\n"
+                f"{note}\n"
+                f"{raw_content}"
             )
         else:
             logger.warning(f"local file not found: {local_path}")

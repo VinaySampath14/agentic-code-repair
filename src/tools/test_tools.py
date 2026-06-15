@@ -12,9 +12,9 @@ _FAST_TEST_FILES: dict[str, list[str]] = {
     ],
     "pylint-dev__pylint": [
         "tests/test_pragma_parser.py",
-        "tests/test_config.py",
-        "tests/lint/test_codeop.py",
-        "tests/test_functional.py",
+        "tests/test_numversion.py",
+        "tests/test_similar.py",
+        "tests/test_func.py",
     ],
 }
 
