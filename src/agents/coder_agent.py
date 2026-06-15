@@ -108,7 +108,7 @@ def _generate_and_verify(
             )
             logger.warning(f"attempt {attempt + 1} failed: old_code not found in file")
             self_correction_attempts += 1
-            current_prompt = _correction_prompt(current_prompt, old_code, new_code, msg)
+            current_prompt = _correction_prompt(current_prompt, old_code, new_code, msg, original)
             continue
 
         # Apply string replacement
@@ -151,16 +151,49 @@ def _make_unified_diff(original: str, modified: str, file_path: str) -> str:
     return "".join(diff)
 
 
-def _correction_prompt(original_prompt: str, old_code: str, new_code: str, error: str) -> str:
+def _correction_prompt(original_prompt: str, old_code: str, new_code: str, error: str, file_content: str = "") -> str:
+    nearest = _find_nearest_block(old_code, file_content) if file_content else ""
+    hint = (
+        f"\nNearest matching block found in the file (copy THIS exactly):\n"
+        f"```\n{nearest}\n```\n"
+        if nearest else ""
+    )
     return (
         f"{original_prompt}\n\n"
         f"--- PREVIOUS ATTEMPT FAILED ---\n"
         f"old_code attempted:\n{old_code}\n\n"
         f"new_code attempted:\n{new_code}\n\n"
-        f"Error: {error}\n\n"
+        f"Error: {error}\n"
+        f"{hint}\n"
         "Fix old_code so it is an exact verbatim substring of the file shown above. "
-        "Copy it character-for-character. Do not paraphrase."
+        "Copy it character-for-character including all whitespace and indentation. Do not paraphrase."
     )
+
+
+def _find_nearest_block(old_code: str, file_content: str) -> str:
+    """Find the closest matching block in file_content to old_code using line-level similarity."""
+    old_lines = old_code.splitlines()
+    file_lines = file_content.splitlines()
+    n = len(old_lines)
+    if n == 0 or len(file_lines) < n:
+        return ""
+
+    best_ratio = 0.0
+    best_start = 0
+    for i in range(len(file_lines) - n + 1):
+        block = file_lines[i : i + n]
+        ratio = difflib.SequenceMatcher(None, old_lines, block).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_start = i
+
+    if best_ratio < 0.4:
+        return ""
+
+    return "\n".join(file_lines[best_start : best_start + n])
+
+
+_MAX_FILE_LINES = 500
 
 
 def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
@@ -171,10 +204,25 @@ def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
         local_path = os.path.join(repo_path, broken_file)
         if os.path.exists(local_path):
             with open(local_path, "r", encoding="utf-8", errors="replace") as f:
-                content = f.read()
-            logger.info(f"read {len(content)} chars from local {broken_file}")
+                raw_lines = f.readlines()
+            logger.info(f"read {len(raw_lines)} lines from local {broken_file}")
+
+            # Focus on broken_function if file is large
+            focused = _focus_on_function(raw_lines, state.get("broken_function", ""))
+            numbered = _number_lines(focused["lines"], start=focused["start"])
+
+            note = ""
+            if focused["truncated"]:
+                note = (
+                    f"(showing lines {focused['start']}–{focused['end']} of "
+                    f"{len(raw_lines)} total — full file available if needed)\n"
+                )
+
             parts.append(
-                f"### {broken_file} (EXACT LOCAL CONTENT — copy old_code verbatim from here)\n{content}"
+                f"### {broken_file} (EXACT LOCAL CONTENT — line numbers shown for reference only)\n"
+                f"{note}"
+                "CRITICAL: old_code must be verbatim text from this file WITHOUT line numbers.\n\n"
+                f"{numbered}"
             )
         else:
             logger.warning(f"local file not found: {local_path}")
@@ -184,6 +232,26 @@ def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
             parts.append(f"### {path}\n{content[:3000]}")
 
     return "\n\n".join(parts)
+
+
+def _focus_on_function(lines: list[str], broken_function: str) -> dict:
+    """Return a window of lines centred on broken_function, or the first MAX lines."""
+    total = len(lines)
+    if broken_function and total > _MAX_FILE_LINES:
+        for i, line in enumerate(lines):
+            if broken_function in line:
+                start = max(0, i - 20)
+                end   = min(total, i + _MAX_FILE_LINES - 20)
+                return {"lines": lines[start:end], "start": start + 1,
+                        "end": end, "truncated": True}
+    # No function hint or file is small — return up to MAX lines
+    truncated = total > _MAX_FILE_LINES
+    end = min(total, _MAX_FILE_LINES)
+    return {"lines": lines[:end], "start": 1, "end": end, "truncated": truncated}
+
+
+def _number_lines(lines: list[str], start: int = 1) -> str:
+    return "".join(f"{start + i:>5}: {line}" for i, line in enumerate(lines))
 
 
 def _repo_path(issue_url: str) -> str:
