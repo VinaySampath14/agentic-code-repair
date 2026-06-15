@@ -7,7 +7,7 @@ from src.config import ACTIVE_MODEL, FIX_SCORE_THRESHOLD, CODER_MAX_RETRIES
 from src.tools.test_tools import run_pytest, run_linter
 from src.tools.shell_tools import run_shell
 
-_client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"])
+_client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
 def critic_agent(state: AgentState) -> AgentState:

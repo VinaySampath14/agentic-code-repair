@@ -6,7 +6,7 @@ from src.config import ACTIVE_MODEL, EXPLORER_MAX_FILES, EXPLORER_MAX_ITERATIONS
 from src.tools.github_tools import read_file
 from src.tools.shell_tools import get_imports
 
-_client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"])
+_client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
 def explorer_agent(state: AgentState) -> AgentState:
