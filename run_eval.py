@@ -15,11 +15,17 @@ import subprocess
 import sys
 import time
 
+# Windows consoles default to CP1252; MLflow emits emoji — force UTF-8 throughout.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 PREDICTIONS_DIR = os.path.join("evals", "predictions")
 RESULTS_PATH    = os.path.join("evals", "results.json")
 
 
-def load_tasks(n: int, repo: str, task_ids: list[str] | None) -> list[dict]:
+def load_tasks(n: int, repo: str, task_ids: list[str] | None, force: bool = False) -> list[dict]:
     from datasets import load_dataset
     print("Loading SWE-bench Lite dataset from HuggingFace...")
     ds = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
@@ -30,13 +36,14 @@ def load_tasks(n: int, repo: str, task_ids: list[str] | None) -> list[dict]:
     else:
         tasks = [t for t in tasks if t["repo"] == repo]
 
-    # Skip tasks that already have a prediction
-    existing = {
-        f.replace(".diff", "")
-        for f in os.listdir(PREDICTIONS_DIR)
-        if f.endswith(".diff")
-    }
-    tasks = [t for t in tasks if t["instance_id"] not in existing]
+    # Skip tasks that already have a prediction (unless --force)
+    if not force:
+        existing = {
+            f.replace(".diff", "")
+            for f in os.listdir(PREDICTIONS_DIR)
+            if f.endswith(".diff")
+        }
+        tasks = [t for t in tasks if t["instance_id"] not in existing]
 
     return tasks[:n]
 
@@ -71,6 +78,8 @@ def run_task(task: dict) -> dict:
         cmd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=300,
     )
     elapsed = round(time.time() - start, 1)
@@ -89,9 +98,9 @@ def run_task(task: dict) -> dict:
     return parsed
 
 
-def _parse_stdout(output: str) -> dict:
+def _parse_stdout(output: str | None) -> dict:
     result = {"fix_score": 0.0, "error": None, "broken_file": "", "pr_url": ""}
-    for line in output.splitlines():
+    for line in (output or "").splitlines():
         if ":" not in line:
             continue
         key, _, val = line.partition(":")
@@ -190,6 +199,7 @@ def main() -> None:
     parser.add_argument("--n",     type=int, default=5,              help="Max tasks to run")
     parser.add_argument("--repo",  type=str, default="psf/requests", help="Filter by repo")
     parser.add_argument("--tasks", type=str, default=None,           help="Comma-separated instance IDs")
+    parser.add_argument("--force", action="store_true",              help="Re-run even if prediction already exists")
     args = parser.parse_args()
 
     os.makedirs(PREDICTIONS_DIR, exist_ok=True)
@@ -197,7 +207,7 @@ def main() -> None:
     task_ids = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
     repo     = None if task_ids else args.repo
 
-    tasks = load_tasks(args.n, repo=repo, task_ids=task_ids)
+    tasks = load_tasks(args.n, repo=repo, task_ids=task_ids, force=args.force)
     if not tasks:
         print("No tasks to run -- all already predicted or no matches found.")
         return

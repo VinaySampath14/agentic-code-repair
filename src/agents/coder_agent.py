@@ -79,7 +79,7 @@ def _generate_and_verify(
     self_correction_attempts = 0
     compile_verified = False
     current_prompt = prompt
-    local_file = os.path.join(repo_path, broken_file)
+    local_file = _resolve_local_path(repo_path, broken_file)
 
     for attempt in range(_MAX_SELF_CORRECTIONS):
         logger.info(f"attempt {attempt + 1}/{_MAX_SELF_CORRECTIONS} — calling OpenAI")
@@ -120,8 +120,9 @@ def _generate_and_verify(
             f.write(modified)
         logger.info(f"applied replacement to {broken_file}")
 
-        # Syntax check
-        compile_result = run_shell(f"python -m py_compile {broken_file}", cwd=repo_path)
+        # Syntax check — use path relative to repo_path so cwd works correctly
+        rel_for_compile = os.path.relpath(local_file, repo_path)
+        compile_result = run_shell(f"python -m py_compile {rel_for_compile}", cwd=repo_path)
         if compile_result["returncode"] != 0:
             msg = f"Compile failed: {compile_result['stderr']}"
             logger.warning(f"attempt {attempt + 1} failed: {msg}")
@@ -197,6 +198,22 @@ def _find_nearest_block(old_code: str, file_content: str) -> str:
 
 
 _MAX_FILE_LINES = 500
+_PATH_STRIP_PREFIXES = ("src/", "lib/", "source/")
+
+
+def _resolve_local_path(repo_path: str, broken_file: str) -> str:
+    """Return the on-disk path for broken_file, trying stripped prefixes at old base_commits."""
+    candidate = os.path.join(repo_path, broken_file)
+    if os.path.exists(candidate):
+        return candidate
+    for prefix in _PATH_STRIP_PREFIXES:
+        if broken_file.startswith(prefix):
+            stripped = broken_file[len(prefix):]
+            alt = os.path.join(repo_path, stripped)
+            if os.path.exists(alt):
+                logger.info(f"path fallback: {broken_file} -> {stripped}")
+                return alt
+    return candidate  # return original so FileNotFoundError is raised with correct path
 
 
 def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
@@ -204,7 +221,7 @@ def _read_local_relevant_code(repo_path: str, state: AgentState) -> str:
     broken_file = state.get("broken_file", "")
 
     if broken_file:
-        local_path = os.path.join(repo_path, broken_file)
+        local_path = _resolve_local_path(repo_path, broken_file)
         if os.path.exists(local_path):
             with open(local_path, "r", encoding="utf-8", errors="replace") as f:
                 raw_lines = f.readlines()
