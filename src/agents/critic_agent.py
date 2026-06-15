@@ -17,6 +17,14 @@ def critic_agent(state: AgentState) -> AgentState:
     try:
         repo_path = _repo_path(state["issue_url"])
 
+        if not os.path.isdir(repo_path):
+            state["error"] = f"critic_agent: repo not cloned at {repo_path}"
+            state["test_results"] = {"decision": "fail"}
+            state["fix_score"] = 0.0
+            state["critic_feedback"] = "Repo not available locally — cannot run tests."
+            logger.error(state["error"])
+            return state
+
         # Baseline: stash patch → run tests → restore patch
         logger.info("running baseline tests (git stash)")
         run_shell("git stash", cwd=repo_path)
@@ -68,7 +76,13 @@ def critic_agent(state: AgentState) -> AgentState:
             critic_feedback = _generate_feedback(state, post, fix_score, decision, repo_path)
             llm_calls = 1
 
+        # Reset working tree so coder always starts from a clean state on retry
+        if decision in ("retry", "fail"):
+            run_shell("git checkout -- .", cwd=repo_path)
+            logger.info("reset working tree to clean state")
+
         state["test_results"] = {
+            "decision":      decision,
             "tests_passed":  tests_passed,
             "tests_failed":  tests_failed,
             "tests_before":  tests_before,
@@ -96,6 +110,7 @@ def critic_agent(state: AgentState) -> AgentState:
         })
 
     except Exception as e:
+        logger.error(f"critic_agent failed: {e}", exc_info=True)
         state["error"] = f"critic_agent failed: {str(e)}"
 
     return state

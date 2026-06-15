@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from datetime import datetime
 from openai import OpenAI
 from src.state import AgentState
@@ -12,9 +13,19 @@ from src.tools.shell_tools import get_imports
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+def _read_file_with_fallback(repo_full_name: str, path: str, repo_path: str) -> str:
+    """Try local clone first, fall back to GitHub API."""
+    local = os.path.join(repo_path, path)
+    if os.path.isfile(local):
+        with open(local, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
+    return read_file(repo_full_name, path)
+
+
 def explorer_agent(state: AgentState) -> AgentState:
     try:
         repo_full_name = _parse_repo(state["issue_url"])
+        repo_path = _repo_path(state["issue_url"])
         file_contents: dict[str, str] = {}
         llm_calls = 0
         iterations = 0
@@ -29,6 +40,11 @@ def explorer_agent(state: AgentState) -> AgentState:
                 # Read all planner-identified files directly
                 batch = list(state["affected_files"])
             else:
+                # If iteration 1 read nothing, no point asking LLM — it has no context
+                if not file_contents:
+                    logger.warning("iteration 1 read 0 files — skipping further iterations")
+                    break
+
                 # LLM decides what to read next
                 decision = _decide_next(state, file_contents)
                 llm_calls += 1
@@ -45,11 +61,28 @@ def explorer_agent(state: AgentState) -> AgentState:
             for path in batch[:budget_remaining]:
                 try:
                     logger.info(f"reading {path}")
-                    content = read_file(repo_full_name, path)
+                    content = _read_file_with_fallback(repo_full_name, path, repo_path)
                     file_contents[path] = content
-                except Exception:
-                    logger.warning(f"skipped {path} (not found)")
+                except Exception as e:
+                    logger.warning(f"skipped {path}: {type(e).__name__}: {e}")
                     pass  # file not found in repo — skip silently
+
+        # If no files were read, skip LLM call and mark confidence low immediately
+        if not file_contents:
+            logger.warning("no files could be read — setting confidence low")
+            state["explorer_confidence"] = "low"
+            state["trace"].append({
+                "agent":         "explorer",
+                "timestamp":     datetime.utcnow().isoformat(),
+                "input_fields":  ["affected_files", "issue_body"],
+                "output_fields": [],
+                "llm_calls":     0,
+                "tool_calls":    ["read_file"],
+                "confidence":    "low",
+                "files_read":    [],
+                "iterations":    iterations,
+            })
+            return state
 
         # Final LLM call: extract structured findings from everything read
         result = _extract_findings(state, file_contents)
@@ -95,12 +128,14 @@ def _decide_next(state: AgentState, file_contents: dict[str, str]) -> dict:
 
     user = (
         f"Issue: {state['issue_body'][:300]}\n\n"
-        f"Files read so far:\n" + "\n".join(files_summary) + "\n\n"
+        f"Files identified by planner: {state['affected_files']}\n\n"
+        f"Files read so far:\n" + ("\n".join(files_summary) if files_summary else "(none)") + "\n\n"
         f"Budget remaining: {budget_remaining} files\n\n"
         "Do you need to read more files to understand the bug?\n"
-        "If yes: {\"action\": \"read_more\", \"files\": [\"path/to/file.py\"]}\n"
+        "IMPORTANT: Only return file paths that exist in the planner's list above.\n"
+        "Do NOT invent or guess file paths.\n"
+        "If yes: {\"action\": \"read_more\", \"files\": [\"requests/utils.py\"]}\n"
         "If no:  {\"action\": \"ready\"}\n"
-        "Only list files directly relevant to the bug."
     )
 
     logger.info(f"_decide_next: calling OpenAI (files read so far: {len(file_contents)})")
@@ -119,7 +154,7 @@ def _decide_next(state: AgentState, file_contents: dict[str, str]) -> dict:
 
 def _extract_findings(state: AgentState, file_contents: dict[str, str]) -> dict:
     files_read_so_far = "\n\n".join(
-        f"### {path}\n{content[:600]}" for path, content in file_contents.items()
+        f"### {path}\n{content[:3000]}" for path, content in file_contents.items()
     )
     budget_remaining = EXPLORER_MAX_FILES - len(file_contents)
 
@@ -148,6 +183,11 @@ def _extract_findings(state: AgentState, file_contents: dict[str, str]) -> dict:
 def _parse_repo(issue_url: str) -> str:
     parts = issue_url.rstrip("/").split("/")
     return f"{parts[3]}/{parts[4]}"
+
+
+def _repo_path(issue_url: str) -> str:
+    parts = issue_url.rstrip("/").split("/")
+    return os.path.join("repos", f"{parts[3]}__{parts[4]}")
 
 
 def _validate(data: dict, required: list[str]) -> None:

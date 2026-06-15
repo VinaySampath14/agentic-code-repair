@@ -33,12 +33,12 @@ INSTRUCTIONS
 
 OUTPUT
 Return a JSON object with exactly these fields:
-{
+{{
   "core_problem": "one sentence description",
   "affected_files": ["path/to/file1.py", "path/to/file2.py"],
   "search_terms": ["term1", "term2"],
   "complexity": 3,
   "confidence": "high" | "medium" | "low",
   "confidence_reason": "why you are or are not confident"
-}
+}}
 Do not return anything outside this JSON object.

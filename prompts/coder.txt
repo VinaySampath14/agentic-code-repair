@@ -16,26 +16,25 @@ Previous attempt failed with:
 {critic_feedback}
 
 INSTRUCTIONS
-1. Read the relevant code carefully.
-2. Identify the minimal change that fixes the bug.
-   Prefer changing 1-5 lines over rewriting a function.
-3. Write the patch as a unified diff (git diff format).
-4. Apply the patch using apply_patch().
-5. Verify syntax: run_shell("python -m py_compile {broken_file}")
-6. If compilation fails, fix and apply again.
-   Maximum 3 self-correction attempts.
+1. Read the EXACT LOCAL CONTENT of {broken_file} provided above.
+2. Find the section of code that causes the bug.
+3. Copy that section EXACTLY as it appears in the file into "old_code".
+   Every character must match — whitespace, indentation, quotes.
+4. Write the minimal fix into "new_code".
+5. Only change what is necessary to fix the bug.
+6. Match existing code style exactly.
 7. If critic_feedback exists, address it directly.
-   Do not repeat the same mistake.
-8. Match existing code style exactly:
-   indentation, quotes, naming conventions.
+
+CRITICAL RULE: old_code must be a verbatim substring of the file shown above.
+Do NOT paraphrase or reformat. Copy character-for-character.
+If old_code does not exactly match text in the file, the patch will fail.
 
 OUTPUT
 Return a JSON object with exactly these fields:
-{
-  "patch": "unified diff string",
-  "changed_files": ["path/to/file.py"],
-  "change_description": "one sentence — what changed and why",
-  "lines_changed": 4,
-  "self_correction_attempts": 0
-}
+{{
+  "old_code": "the exact code to replace — copied verbatim from the file",
+  "new_code": "the corrected replacement code",
+  "changed_files": ["{broken_file}"],
+  "change_description": "one sentence — what changed and why"
+}}
 Do not return anything outside this JSON object.

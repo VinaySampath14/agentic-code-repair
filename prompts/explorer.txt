@@ -30,15 +30,15 @@ INSTRUCTIONS
 
 OUTPUT
 Return a JSON object with exactly these fields:
-{
-  "relevant_code": {
+{{
+  "relevant_code": {{
     "file_path": "key snippet — function name and body"
-  },
+  }},
   "broken_function": "ClassName.method or function_name",
   "broken_file": "path/to/file.py",
   "current_behaviour": "what the code does now",
   "expected_behaviour": "what it should do per the issue",
   "confidence": "high" | "low",
   "confidence_reason": "explanation if low"
-}
+}}
 Do not return anything outside this JSON object.

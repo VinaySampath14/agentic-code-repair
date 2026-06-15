@@ -1,22 +1,33 @@
 import time
 import base64
 import logging
-from github import Github, GithubException
+from github import Github, GithubException, BadCredentialsException
 from src.config import GITHUB_TOKEN
 
 logger = logging.getLogger(__name__)
-_client = Github(GITHUB_TOKEN)
+_client = Github(GITHUB_TOKEN) if GITHUB_TOKEN else Github()
+_anon_client = Github()  # fallback for public repos when token is invalid
+_repo_cache: dict = {}
 
 
 def _get_repo(repo_full_name: str):
-    for attempt in range(3):
-        try:
-            return _client.get_repo(repo_full_name)
-        except GithubException as e:
-            if e.status == 403 and attempt < 2:
-                time.sleep(2 ** attempt)
-            else:
-                raise
+    if repo_full_name in _repo_cache:
+        return _repo_cache[repo_full_name]
+    for client in (_client, _anon_client):
+        for attempt in range(3):
+            try:
+                repo = client.get_repo(repo_full_name)
+                _repo_cache[repo_full_name] = repo
+                return repo
+            except BadCredentialsException:
+                logger.warning("GitHub token invalid — retrying with anonymous access")
+                break  # try anon_client
+            except GithubException as e:
+                if e.status == 403 and attempt < 2:
+                    time.sleep(2 ** attempt)
+                else:
+                    raise
+    raise RuntimeError(f"Could not access repo {repo_full_name} with or without credentials")
 
 
 def _default_branch(repo_full_name: str) -> str:

@@ -62,6 +62,7 @@ def pr_agent(state: AgentState) -> AgentState:
             })
 
     except Exception as e:
+        logger.error(f"pr_agent failed: {e}", exc_info=True)
         state["error"] = f"pr_agent failed: {str(e)}"
 
     return state

@@ -9,13 +9,22 @@ from src.agents.pr_agent       import pr_agent
 
 
 def route_after_explorer(state: AgentState) -> str:
-    # Cap replans at 2 to prevent infinite loops
-    replan_count = sum(1 for t in state.get("trace", []) if t.get("agent") == "planner")
-    if replan_count >= 2:
+    # Errors always proceed — never replan on error (causes infinite loop)
+    if state.get("error"):
+        return "proceed"
+    trace = state.get("trace", [])
+    # Count empty explorer runs — if any, files aren't readable, proceed anyway
+    empty_explorer_runs = sum(
+        1 for t in trace
+        if t.get("agent") == "explorer" and len(t.get("files_read", [])) == 0
+    )
+    if empty_explorer_runs >= 1:
+        return "proceed"
+    # Cap total replans at 2 — beyond that, proceed with what we have
+    planner_runs = sum(1 for t in trace if t.get("agent") == "planner")
+    if planner_runs >= 2:
         return "proceed"
     if state.get("explorer_confidence") == "low":
-        return "replan"
-    if state.get("error"):
         return "replan"
     return "proceed"
 

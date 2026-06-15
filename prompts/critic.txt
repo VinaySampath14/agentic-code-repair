@@ -17,7 +17,7 @@ INSTRUCTIONS
    tests_passed: how many now pass
    tests_failed: how many now fail
    tests_before: how many passed before the patch
-3. Run the linter: run_linter("{broken_file}")
+3. Run the linter: run_linter("{{broken_file}}")
    Note errors (warnings are acceptable).
 4. Calculate fix_score:
    test_pass_rate = tests_passed / (tests_passed + tests_failed)
@@ -33,7 +33,7 @@ INSTRUCTIONS
 
 OUTPUT
 Return a JSON object with exactly these fields:
-{
+{{
   "tests_passed": 12,
   "tests_failed": 2,
   "tests_before": 13,
@@ -43,5 +43,5 @@ Return a JSON object with exactly these fields:
   "fix_score": 0.785,
   "decision": "approve" | "retry" | "fail",
   "feedback": "specific reason if retry or fail"
-}
+}}
 Do not return anything outside this JSON object.
