@@ -1,0 +1,11 @@
+--- a/xarray/core/dataset.py
++++ b/xarray/core/dataset.py
+@@ -397,7 +397,7 @@
+         raise KeyError(key)
+ 
+     def __repr__(self) -> str:
+-        return formatting.data_vars_repr(self)
++        return formatting.data_vars_repr(self, include_units=True)
+ 
+     @property
+     def variables(self) -> Mapping[Hashable, Variable]:

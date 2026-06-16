@@ -1,0 +1,9 @@
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -323,5 +323,5 @@
+                     setattr(obj, field.attname, value)
+         for model, instances in self.data.items():
+             for instance in instances:
+-                setattr(instance, model._meta.pk.attname, None)
++                instance.pk = None
+         return sum(deleted_counter.values()), dict(deleted_counter)

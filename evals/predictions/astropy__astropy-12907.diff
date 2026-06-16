@@ -1,0 +1,11 @@
+--- a/astropy/modeling/separable.py
++++ b/astropy/modeling/separable.py
+@@ -305,7 +305,7 @@
+     elif isinstance(transform, CompoundModel):
+         sepleft = _separable(transform.left)
+         sepright = _separable(transform.right)
+-        return _operators[transform.op](sepleft, sepright)
++        return np.logical_and(sepleft, sepright)
+     elif isinstance(transform, Model):
+         return _coord_matrix(transform, "left", transform.n_outputs)
+ 

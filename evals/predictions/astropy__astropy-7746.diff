@@ -1,0 +1,11 @@
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -1557,7 +1557,7 @@
+                     + "a 1-D array for each axis, followed by an origin."
+                 )
+ 
+-            return _return_list_of_arrays(axes, origin)
++            return _return_list_of_arrays(axes, origin) if axes else ([], [])
+ 
+         raise TypeError(
+             f"WCS projection has {self.naxis} dimensions, so expected 2 (an Nx{self.naxis} array "

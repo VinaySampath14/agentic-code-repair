@@ -2,27 +2,58 @@ import json
 import logging
 import os
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, EXPLORER_MAX_FILES, EXPLORER_MAX_ITERATIONS
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.github_tools import read_file
 from src.tools.shell_tools import get_imports
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+_PATH_STRIP_PREFIXES = ("src/", "lib/", "source/")
+
+
+def _resolve_local(repo_path: str, path: str) -> str:
+    """Return the on-disk path for a file, trying prefix strips then basename search."""
+    candidate = os.path.join(repo_path, path)
+    if os.path.isfile(candidate):
+        return candidate
+    for prefix in _PATH_STRIP_PREFIXES:
+        if path.startswith(prefix):
+            alt = os.path.join(repo_path, path[len(prefix):])
+            if os.path.isfile(alt):
+                logger.info(f"explorer path fallback: {path} -> {path[len(prefix):]}")
+                return alt
+    # Basename search for renamed files (e.g. _ridge.py -> ridge.py)
+    basename = os.path.basename(path)
+    dirname  = os.path.dirname(path)
+    for root, _dirs, files in os.walk(repo_path):
+        for fname in files:
+            if fname == basename or fname == basename.lstrip("_"):
+                found = os.path.join(root, fname)
+                rel = os.path.relpath(found, repo_path).replace("\\", "/")
+                if os.path.dirname(rel) == dirname or os.path.dirname(rel).endswith(os.path.basename(dirname)):
+                    logger.info(f"explorer basename fallback: {path} -> {rel}")
+                    return found
+    return candidate
+
+
 def _read_file_with_fallback(repo_full_name: str, path: str, repo_path: str) -> str:
-    """Try local clone first, fall back to GitHub API."""
-    local = os.path.join(repo_path, path)
+    """Try local clone first (with prefix fallback for old base_commits), then GitHub API."""
+    local = _resolve_local(repo_path, path)
     if os.path.isfile(local):
         with open(local, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
     return read_file(repo_full_name, path)
 
 
+@observe(name="explorer-agent")
 def explorer_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_full_name = _parse_repo(state["issue_url"])
         repo_path = _repo_path(state["issue_url"])
@@ -67,9 +98,20 @@ def explorer_agent(state: AgentState) -> AgentState:
                     logger.warning(f"skipped {path}: {type(e).__name__}: {e}")
                     pass  # file not found in repo — skip silently
 
-        # If no files were read, skip LLM call and mark confidence low immediately
+        # If no files were read, try a local-scan fallback before giving up
         if not file_contents:
-            logger.warning("no files could be read — setting confidence low")
+            logger.warning("no files could be read from planner paths — trying local scan fallback")
+            fallback_path = _pick_file_from_local_scan(repo_path, state, repo_full_name)
+            if fallback_path:
+                try:
+                    content = _read_file_with_fallback(repo_full_name, fallback_path, repo_path)
+                    file_contents[fallback_path] = content
+                    logger.info(f"local scan fallback read: {fallback_path}")
+                except Exception as e:
+                    logger.warning(f"local scan fallback failed: {e}")
+
+        if not file_contents:
+            logger.warning("local scan fallback also found nothing — returning without broken_file")
             state["explorer_confidence"] = "low"
             state["trace"].append({
                 "agent":         "explorer",
@@ -178,6 +220,46 @@ def _extract_findings(state: AgentState, file_contents: dict[str, str]) -> dict:
     _validate(result, ["broken_function", "broken_file", "current_behaviour",
                        "expected_behaviour", "confidence"])
     return result
+
+
+def _pick_file_from_local_scan(repo_path: str, state: AgentState, repo_full_name: str) -> str:
+    """Scan local repo for .py files and ask the LLM to pick the most relevant one."""
+    py_files = []
+    for root, dirs, files in os.walk(repo_path):
+        dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git", "node_modules",
+                                                  "tests", "test", "docs", "build", "dist")]
+        rel_root = os.path.relpath(root, repo_path).replace("\\", "/")
+        for f in files:
+            if f.endswith(".py"):
+                path = f"{rel_root}/{f}" if rel_root != "." else f
+                py_files.append(path)
+        if len(py_files) >= 200:
+            break
+
+    if not py_files:
+        return ""
+
+    file_list = "\n".join(py_files[:200])
+    prompt = (
+        f"Issue: {state['issue_body'][:400]}\n\n"
+        f"These .py files exist in the repo:\n{file_list}\n\n"
+        "Which single file is most likely to contain the bug described in the issue?\n"
+        "Return JSON: {\"broken_file\": \"path/to/file.py\"}"
+    )
+
+    logger.info("local scan fallback — calling LLM to pick file")
+    try:
+        response = _client.chat.completions.create(
+            model=ACTIVE_MODEL["model"],
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            timeout=30.0,
+        )
+        result = json.loads(response.choices[0].message.content)
+        return result.get("broken_file", "")
+    except Exception as e:
+        logger.warning(f"local scan fallback LLM call failed: {e}")
+        return ""
 
 
 def _parse_repo(issue_url: str) -> str:

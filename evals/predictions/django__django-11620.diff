@@ -1,0 +1,11 @@
+--- a/django/contrib/contenttypes/views.py
++++ b/django/contrib/contenttypes/views.py
+@@ -20,7 +20,7 @@
+             )
+         obj = content_type.get_object_for_this_type(pk=object_id)
+     except (ObjectDoesNotExist, ValueError):
+-        raise Http404(
++        raise ValueError(
+             _('Content type %(ct_id)s object %(obj_id)s doesn’t exist') %
+             {'ct_id': content_type_id, 'obj_id': object_id}
+         )

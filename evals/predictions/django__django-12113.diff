@@ -1,0 +1,11 @@
+--- a/django/contrib/auth/models.py
++++ b/django/contrib/auth/models.py
+@@ -137,7 +137,7 @@
+         username = self.model.normalize_username(username)
+         user = self.model(username=username, email=email, **extra_fields)
+         user.set_password(password)
+-        user.save(using=self._db)
++        user.save(using=self._db, force_insert=True)
+         return user
+ 
+     def create_user(self, username, email=None, password=None, **extra_fields):

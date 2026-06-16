@@ -1,0 +1,12 @@
+--- a/sphinx/ext/autodoc/_directive.py
++++ b/sphinx/ext/autodoc/_directive.py
+@@ -92,7 +92,8 @@
+ 
+             elif options.get(name) is not None:
+                 # remove '+' from option argument if there's nothing to merge it with
+-                options[name] = options[name].lstrip('+')
++                if isinstance(options[name], str):
++                    options[name] = options[name].lstrip('+')
+ 
+     return Options(assemble_option_dict(options.items(), documenter.option_spec))
+ 

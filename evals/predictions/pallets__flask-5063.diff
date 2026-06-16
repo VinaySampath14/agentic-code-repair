@@ -1,0 +1,11 @@
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -91,6 +91,8 @@
+             else:
+                 rule = self.url_prefix
+         options.setdefault("subdomain", self.subdomain)
++        if self.subdomain:
++            options.setdefault("server_name", self.app.config["SERVER_NAME"])
+         if endpoint is None:
+             endpoint = _endpoint_from_view_func(view_func)  # type: ignore
+         defaults = self.url_defaults

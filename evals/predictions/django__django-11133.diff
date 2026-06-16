@@ -1,0 +1,11 @@
+--- a/django/http/response.py
++++ b/django/http/response.py
+@@ -317,7 +317,7 @@
+                 except Exception:
+                     pass
+         else:
+-            content = self.make_bytes(value)
++            content = self.make_bytes(value.tobytes() if isinstance(value, memoryview) else value)
+         # Create a list of properly encoded bytestrings to support write().
+         self._container = [content]
+ 

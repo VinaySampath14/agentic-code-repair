@@ -1,0 +1,11 @@
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -133,7 +133,7 @@
+                 all_items.add(item)
+                 # No self dependencies
+                 if head != item:
+-                    dependency_graph[item].add(head)
++                    dependency_graph[head].add(item)
+                 head = item
+         try:
+             return stable_topological_sort(all_items, dependency_graph)

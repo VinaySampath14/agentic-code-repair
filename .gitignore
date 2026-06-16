@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific
+repos/
+mlflow.db
+mlruns/
+check*.py
+evals/results.json

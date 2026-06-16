@@ -1,0 +1,11 @@
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -73,6 +73,8 @@
+         return self.rhs
+ 
+     def get_db_prep_lookup(self, value, connection):
++        if not isinstance(value, bool):
++            raise ValueError('Value for __isnull lookup must be a boolean.')
+         return ('%s', [value])
+ 
+     def process_lhs(self, compiler, connection, lhs=None):

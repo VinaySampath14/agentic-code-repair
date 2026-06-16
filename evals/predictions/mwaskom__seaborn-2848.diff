@@ -1,0 +1,20 @@
+--- a/seaborn/_core/data.py
++++ b/seaborn/_core/data.py
+@@ -210,10 +210,13 @@
+             if val_as_data_key:
+ 
+                 if val in source_data:
+-                    plot_data[key] = source_data[val]
+-                elif val in index:
+-                    plot_data[key] = index[val]
+-                names[key] = ids[key] = str(val)
++                    if val in source_data:
++                        plot_data[key] = source_data[val]
++                    elif val in index:
++                        plot_data[key] = index[val]
++                    elif val in self.frame.columns:
++                        plot_data[key] = self.frame[val]
++                    names[key] = ids[key] = str(val)
+ 
+             elif isinstance(val, str):
+ 

@@ -1,0 +1,14 @@
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -115,6 +115,11 @@
+         for _name, field in self.fields:
+             if field_references_model(field, model_tuple):
+                 return True
++            if isinstance(field, models.Field) and hasattr(field, 'model'):
++                # Update for inner class reference
++                inner_class_name = f'{app_label}.{field.model.__name__}.{field.__class__.__name__}'
++                if field_references_model(inner_class_name, model_tuple):
++                    return True
+         return False
+ 
+     def reduce(self, operation, app_label=None):

@@ -1,0 +1,709 @@
+[
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "src/requests/sessions.py",
+    "pr_url": "eval:psf__requests-1963",
+    "instance_id": "psf__requests-1963",
+    "repo": "psf/requests",
+    "elapsed_s": 67.7,
+    "fail_to_pass": "[\"test_requests.py::RequestsTestCase::test_DIGESTAUTH_QUOTES_QOP_VALUE\", \"test_requests.py::RequestsTestCase::test_DIGESTAUTH_WRONG_HTTP_401_GET\", \"test_requests.py::RequestsTestCase::test_DIGEST_AUTH_RETURNS_COOKIE\", \"test_requests.py::RequestsTestCase::test_DIGEST_HTTP_200_OK_GET\", \"test_requests.py::RequestsTestCase::test_POSTBIN_GET_POST_FILES_WITH_DATA\", \"test_requests.py::RequestsTestCase::test_param_cookiejar_works\", \"test_requests.py::TestRedirects::test_requests_are_updated_each_time\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "src/requests/adapters.py",
+    "pr_url": "eval:psf__requests-2148",
+    "instance_id": "psf__requests-2148",
+    "repo": "psf/requests",
+    "elapsed_s": 35.7,
+    "fail_to_pass": "[\"test_requests.py::RequestsTestCase::test_DIGEST_AUTH_RETURNS_COOKIE\", \"test_requests.py::RequestsTestCase::test_HTTP_200_OK_GET_ALTERNATIVE\", \"test_requests.py::RequestsTestCase::test_HTTP_200_OK_HEAD\", \"test_requests.py::RequestsTestCase::test_POSTBIN_GET_POST_FILES\", \"test_requests.py::RequestsTestCase::test_auth_is_stripped_on_redirect_off_host\", \"test_requests.py::RequestsTestCase::test_basicauth_with_netrc\", \"test_requests.py::RequestsTestCase::test_cookie_quote_wrapped\", \"test_requests.py::RequestsTestCase::test_generic_cookiejar_works\", \"test_requests.py::RequestsTestCase::test_iter_content_handles_socket_error\", \"test_requests.py::RequestsTestCase::test_unicode_multipart_post\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\psf__requests\\\\path/to/neutronclient/utils.py'",
+    "broken_file": "path/to/neutronclient/utils.py",
+    "pr_url": "",
+    "instance_id": "psf__requests-2317",
+    "repo": "psf/requests",
+    "elapsed_s": 16.9,
+    "fail_to_pass": "[\"test_requests.py::RequestsTestCase::test_HTTP_302_ALLOW_REDIRECT_GET\", \"test_requests.py::RequestsTestCase::test_POSTBIN_GET_POST_FILES\", \"test_requests.py::RequestsTestCase::test_POSTBIN_GET_POST_FILES_WITH_DATA\", \"test_requests.py::RequestsTestCase::test_basicauth_with_netrc\", \"test_requests.py::RequestsTestCase::test_json_param_post_content_type_works\", \"test_requests.py::RequestsTestCase::test_manual_redirect_with_partial_body_read\", \"test_requests.py::RequestsTestCase::test_requests_history_is_saved\", \"test_requests.py::TestTimeout::test_encoded_methods\"]"
+  },
+  {
+    "fix_score": 0.42,
+    "error": null,
+    "broken_file": "src/requests/adapters.py",
+    "pr_url": "",
+    "instance_id": "psf__requests-2674",
+    "repo": "psf/requests",
+    "elapsed_s": 62.2,
+    "fail_to_pass": "[\"test_requests.py::RequestsTestCase::test_BASICAUTH_TUPLE_HTTP_200_OK_GET\", \"test_requests.py::RequestsTestCase::test_HTTP_200_OK_GET_ALTERNATIVE\", \"test_requests.py::RequestsTestCase::test_HTTP_200_OK_GET_WITH_PARAMS\", \"test_requests.py::RequestsTestCase::test_HTTP_200_OK_HEAD\", \"test_requests.py::RequestsTestCase::test_auth_is_retained_for_redirect_on_host\", \"test_requests.py::RequestsTestCase::test_different_encodings_dont_break_post\", \"test_requests.py::RequestsTestCase::test_manual_redirect_with_partial_body_read\", \"test_requests.py::RequestsTestCase::test_mixed_case_scheme_acceptable\", \"test_requests.py::RequestsTestCase::test_prepared_from_session\", \"test_requests.py::RequestsTestCase::test_unicode_multipart_post\", \"test_requests.py::TestTimeout::test_none_timeout\", \"test_requests.py::TestTimeout::test_encoded_methods\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "src/requests/models.py",
+    "pr_url": "",
+    "instance_id": "psf__requests-3362",
+    "repo": "psf/requests",
+    "elapsed_s": 28.1,
+    "fail_to_pass": "[\"tests/test_requests.py::TestRequests::test_response_decode_unicode\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "src/requests/models.py",
+    "pr_url": "eval:psf__requests-863",
+    "instance_id": "psf__requests-863",
+    "repo": "psf/requests",
+    "elapsed_s": 25.1,
+    "fail_to_pass": "[\"tests/test_requests.py::RequestsTestSuite::test_POSTBIN_GET_POST_FILES_WITH_HEADERS\", \"tests/test_requests.py::RequestsTestSuite::test_nonurlencoded_postdata\", \"tests/test_requests.py::RequestsTestSuite::test_prefetch_redirect_bug\", \"tests/test_requests.py::RequestsTestSuite::test_urlencoded_post_data\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\pylint-dev__pylint\\\\pylint/config/argument.py'",
+    "broken_file": "pylint/config/argument.py",
+    "pr_url": "",
+    "instance_id": "pylint-dev__pylint-5859",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 89.0,
+    "fail_to_pass": "[\"tests/checkers/unittest_misc.py::TestFixme::test_non_alphanumeric_codetag\"]"
+  },
+  {
+    "fix_score": 0.2,
+    "error": null,
+    "broken_file": "pylint/config/config_initialization.py",
+    "pr_url": "",
+    "instance_id": "pylint-dev__pylint-6506",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 67.6,
+    "fail_to_pass": "[\"tests/config/test_config.py::test_unknown_option_name\", \"tests/config/test_config.py::test_unknown_short_option_name\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "pylint/lint/pylinter.py",
+    "pr_url": "",
+    "instance_id": "pylint-dev__pylint-7080",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 21.4,
+    "fail_to_pass": "[\"tests/test_self.py::TestRunTC::test_ignore_path_recursive_current_dir\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "pylint/__init__.py",
+    "pr_url": "",
+    "instance_id": "pylint-dev__pylint-7114",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 61.1,
+    "fail_to_pass": "[\"tests/lint/unittest_lint.py::test_identically_named_nested_module\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "pylint/config/config_initialization.py",
+    "pr_url": "",
+    "instance_id": "pylint-dev__pylint-7228",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 41.5,
+    "fail_to_pass": "[\"tests/config/test_config.py::test_regex_error\", \"tests/config/test_config.py::test_csv_regex_error\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "pylint/message/message.py",
+    "pr_url": "eval:pylint-dev__pylint-7993",
+    "instance_id": "pylint-dev__pylint-7993",
+    "repo": "pylint-dev/pylint",
+    "elapsed_s": 31.6,
+    "fail_to_pass": "[\"tests/reporters/unittest_reporting.py::test_template_option_with_header\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "astropy/io/ascii/rst.py",
+    "pr_url": "",
+    "instance_id": "astropy__astropy-14182",
+    "repo": "astropy/astropy",
+    "elapsed_s": 75.5,
+    "fail_to_pass": "[\"astropy/io/ascii/tests/test_rst.py::test_rst_with_header_rows\"]"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-18869",
+    "repo": "matplotlib/matplotlib",
+    "fix_score": 0.0,
+    "error": "timeout (300s)",
+    "elapsed_s": 300
+  },
+  {
+    "fix_score": 0.5,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "seaborn/_core/data.py",
+    "pr_url": "",
+    "instance_id": "mwaskom__seaborn-2848",
+    "repo": "mwaskom/seaborn",
+    "elapsed_s": 176.0,
+    "fail_to_pass": "[\"tests/test_relational.py::TestScatterPlotter::test_hue_order\"]"
+  },
+  {
+    "fix_score": 1.0,
+    "error": null,
+    "broken_file": "src/flask/blueprints.py",
+    "pr_url": "eval:pallets__flask-4045",
+    "instance_id": "pallets__flask-4045",
+    "repo": "pallets/flask",
+    "elapsed_s": 40.5,
+    "fail_to_pass": "[\"tests/test_blueprints.py::test_dotted_name_not_allowed\", \"tests/test_blueprints.py::test_route_decorator_custom_endpoint_with_dots\"]"
+  },
+  {
+    "fix_score": 0.5,
+    "error": null,
+    "broken_file": "xarray/structure/concat.py",
+    "pr_url": "",
+    "instance_id": "pydata__xarray-3364",
+    "repo": "pydata/xarray",
+    "elapsed_s": 99.1,
+    "fail_to_pass": "[\"xarray/tests/test_combine.py::TestAutoCombineOldAPI::test_auto_combine_with_new_variables\", \"xarray/tests/test_concat.py::TestConcatDataset::test_concat_merge_variables_present_in_some_datasets\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "src/_pytest/assertion/rewrite.py",
+    "pr_url": "",
+    "instance_id": "pytest-dev__pytest-11143",
+    "repo": "pytest-dev/pytest",
+    "elapsed_s": 42.4,
+    "fail_to_pass": "[\"testing/test_assertrewrite.py::TestIssue11140::test_constant_not_picked_as_module_docstring\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\pytest-dev__pytest\\\\tests/unit/test_commands.py'",
+    "broken_file": "tests/unit/test_commands.py",
+    "pr_url": "",
+    "instance_id": "pytest-dev__pytest-11148",
+    "repo": "pytest-dev/pytest",
+    "elapsed_s": 33.4,
+    "fail_to_pass": "[\"testing/test_pathlib.py::TestImportPath::test_remembers_previous_imports\", \"testing/acceptance_test.py::test_doctest_and_normal_imports_with_importlib\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "sklearn/linear_model/__init__.py",
+    "pr_url": "",
+    "instance_id": "scikit-learn__scikit-learn-10297",
+    "repo": "scikit-learn/scikit-learn",
+    "elapsed_s": 25.4,
+    "fail_to_pass": "[\"sklearn/linear_model/tests/test_ridge.py::test_ridge_classifier_cv_store_cv_values\"]"
+  },
+  {
+    "fix_score": 0.4,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "sphinx/ext/autodoc/_directive.py",
+    "pr_url": "",
+    "instance_id": "sphinx-doc__sphinx-10325",
+    "repo": "sphinx-doc/sphinx",
+    "elapsed_s": 47.0,
+    "fail_to_pass": "[\"tests/test_ext_autodoc_automodule.py::test_automodule_inherited_members\"]"
+  },
+  {
+    "fix_score": 0.4,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "sympy/functions/elementary/trigonometric.py",
+    "pr_url": "",
+    "instance_id": "sympy__sympy-11400",
+    "repo": "sympy/sympy",
+    "elapsed_s": 66.9,
+    "fail_to_pass": "[\"test_ccode_Relational\", \"test_ccode_sinc\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "django/core/files/uploadedfile.py",
+    "pr_url": "",
+    "instance_id": "django__django-10914",
+    "repo": "django/django",
+    "elapsed_s": 63.2,
+    "fail_to_pass": "[\"test_override_file_upload_permissions (test_utils.tests.OverrideSettingsTests)\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/db/models/fields/__init__.py",
+    "pr_url": "",
+    "instance_id": "django__django-10924",
+    "repo": "django/django",
+    "elapsed_s": 46.7,
+    "fail_to_pass": "[\"test_callable_path (model_fields.test_filepathfield.FilePathFieldTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "seaborn/_stats/regression.py",
+    "pr_url": "eval:mwaskom__seaborn-3010",
+    "instance_id": "mwaskom__seaborn-3010",
+    "repo": "mwaskom/seaborn",
+    "elapsed_s": 46.9,
+    "fail_to_pass": "[\"tests/_stats/test_regression.py::TestPolyFit::test_missing_data\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "src/flask/config.py",
+    "pr_url": "eval:pallets__flask-4992",
+    "instance_id": "pallets__flask-4992",
+    "repo": "pallets/flask",
+    "elapsed_s": 34.5,
+    "fail_to_pass": "[\"tests/test_config.py::test_config_from_file_toml\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "xarray/core/dataset.py",
+    "pr_url": "",
+    "instance_id": "pydata__xarray-4094",
+    "repo": "pydata/xarray",
+    "elapsed_s": 32.6,
+    "fail_to_pass": "[\"xarray/tests/test_dataset.py::TestDataset::test_to_stacked_array_to_unstacked_dataset\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "astropy/io/ascii/qdp.py",
+    "pr_url": "eval:astropy__astropy-14365",
+    "instance_id": "astropy__astropy-14365",
+    "repo": "astropy/astropy",
+    "elapsed_s": 66.8,
+    "fail_to_pass": "[\"astropy/io/ascii/tests/test_qdp.py::test_roundtrip[True]\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/db/models/sql/compiler.py",
+    "pr_url": "eval:django__django-11001",
+    "instance_id": "django__django-11001",
+    "repo": "django/django",
+    "elapsed_s": 35.7,
+    "fail_to_pass": "[\"test_order_by_multiline_sql (expressions.tests.BasicExpressionsTests)\", \"test_order_of_operations (expressions.tests.BasicExpressionsTests)\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "seaborn/_core/plot.py",
+    "pr_url": "",
+    "instance_id": "mwaskom__seaborn-3190",
+    "repo": "mwaskom/seaborn",
+    "elapsed_s": 63.5,
+    "fail_to_pass": "[\"tests/_core/test_scales.py::TestContinuous::test_interval_with_bools\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "src/flask/blueprints.py",
+    "pr_url": "",
+    "instance_id": "pallets__flask-5063",
+    "repo": "pallets/flask",
+    "elapsed_s": 60.5,
+    "fail_to_pass": "[\"tests/test_cli.py::TestRoutes::test_subdomain\", \"tests/test_cli.py::TestRoutes::test_host\"]"
+  },
+  {
+    "fix_score": 0.5,
+    "error": null,
+    "broken_file": "xarray/core/dataset.py",
+    "pr_url": "",
+    "instance_id": "pydata__xarray-4248",
+    "repo": "pydata/xarray",
+    "elapsed_s": 79.7,
+    "fail_to_pass": "[\"xarray/tests/test_formatting.py::test_inline_variable_array_repr_custom_repr\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "astropy/nddata/mixins/ndarithmetic.py",
+    "pr_url": "eval:astropy__astropy-14995",
+    "instance_id": "astropy__astropy-14995",
+    "repo": "astropy/astropy",
+    "elapsed_s": 39.7,
+    "fail_to_pass": "[\"astropy/nddata/mixins/tests/test_ndarithmetic.py::test_nddata_bitmask_arithmetic\"]"
+  },
+  {
+    "fix_score": 0.1,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/forms/widgets.py",
+    "pr_url": "",
+    "instance_id": "django__django-11019",
+    "repo": "django/django",
+    "elapsed_s": 51.3,
+    "fail_to_pass": "[\"test_combine_media (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_construction (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_form_media (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_media_deduplication (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_media_inheritance (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_media_inheritance_extends (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_media_property_parent_references (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_merge (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_merge_css_three_way (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_merge_js_three_way (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_merge_js_three_way2 (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_merge_warning (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_multi_widget (forms_tests.tests.test_media.FormsMediaTestCase)\", \"test_media (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests)\", \"test_render_options (admin_widgets.test_autocomplete_widget.AutocompleteMixinTests)\", \"test_inline_media_only_inline (admin_inlines.tests.TestInlineMedia)\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "seaborn/axisgrid.py",
+    "pr_url": "eval:mwaskom__seaborn-3407",
+    "instance_id": "mwaskom__seaborn-3407",
+    "repo": "mwaskom/seaborn",
+    "elapsed_s": 31.5,
+    "fail_to_pass": "[\"tests/test_axisgrid.py::TestPairGrid::test_pairplot_column_multiindex\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "xarray/core/dataset.py",
+    "pr_url": "",
+    "instance_id": "pydata__xarray-4493",
+    "repo": "pydata/xarray",
+    "elapsed_s": 27.2,
+    "fail_to_pass": "[\"xarray/tests/test_variable.py::TestVariable::test_as_variable\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "astropy/io/fits/fitsrec.py",
+    "pr_url": "",
+    "instance_id": "astropy__astropy-6938",
+    "repo": "astropy/astropy",
+    "elapsed_s": 22.2,
+    "fail_to_pass": "[\"astropy/io/fits/tests/test_checksum.py::TestChecksumFunctions::test_ascii_table_data\", \"astropy/io/fits/tests/test_table.py::TestTableFunctions::test_ascii_table\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "django/db/migrations/commands/sqlmigrate.py",
+    "pr_url": "eval:django__django-11039",
+    "instance_id": "django__django-11039",
+    "repo": "django/django",
+    "elapsed_s": 36.4,
+    "fail_to_pass": "[\"test_sqlmigrate_for_non_transactional_databases (migrations.test_commands.MigrateTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "xarray/core/formatting.py",
+    "pr_url": "",
+    "instance_id": "pydata__xarray-5131",
+    "repo": "pydata/xarray",
+    "elapsed_s": 29.2,
+    "fail_to_pass": "[\"xarray/tests/test_groupby.py::test_groupby_repr[obj0-x]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj0-y]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj0-z]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj0-month]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj1-x]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj1-y]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj1-z]\", \"xarray/tests/test_groupby.py::test_groupby_repr[obj1-month]\", \"xarray/tests/test_groupby.py::test_groupby_repr_datetime[obj0]\", \"xarray/tests/test_groupby.py::test_groupby_repr_datetime[obj1]\"]"
+  },
+  {
+    "fix_score": 0.66,
+    "error": null,
+    "broken_file": "astropy/wcs/wcs.py",
+    "pr_url": "eval:astropy__astropy-7746",
+    "instance_id": "astropy__astropy-7746",
+    "repo": "astropy/astropy",
+    "elapsed_s": 35.7,
+    "fail_to_pass": "[\"astropy/wcs/tests/test_wcs.py::test_zero_size_input\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\django__django\\\\django/db/models/fields/duration.py'",
+    "broken_file": "django/db/models/fields/duration.py",
+    "pr_url": "",
+    "instance_id": "django__django-11049",
+    "repo": "django/django",
+    "elapsed_s": 18.7,
+    "fail_to_pass": "[\"test_invalid_string (model_fields.test_durationfield.TestValidation)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/http/response.py",
+    "pr_url": "eval:django__django-11133",
+    "instance_id": "django__django-11133",
+    "repo": "django/django",
+    "elapsed_s": 23.6,
+    "fail_to_pass": "[\"test_memoryview_content (httpwrappers.tests.HttpResponseTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/db/models/deletion.py",
+    "pr_url": "eval:django__django-11179",
+    "instance_id": "django__django-11179",
+    "repo": "django/django",
+    "elapsed_s": 24.8,
+    "fail_to_pass": "[\"test_fast_delete_instance_set_pk_none (delete.tests.FastDeleteTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/contrib/auth/migrations/0011_update_proxy_permissions.py",
+    "pr_url": "eval:django__django-11283",
+    "instance_id": "django__django-11283",
+    "repo": "django/django",
+    "elapsed_s": 33.6,
+    "fail_to_pass": "[\"test_migrate_with_existing_target_permission (auth_tests.test_migrations.ProxyModelWithSameAppLabelTests)\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "django/utils/autoreload.py",
+    "pr_url": "",
+    "instance_id": "django__django-11422",
+    "repo": "django/django",
+    "elapsed_s": 47.5,
+    "fail_to_pass": "[\"test_main_module_is_resolved (utils_tests.test_autoreload.TestIterModulesAndFiles)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\django__django\\\\django/contrib/staticfiles/templatetags/staticfiles.py'",
+    "broken_file": "django/contrib/staticfiles/templatetags/staticfiles.py",
+    "pr_url": "",
+    "instance_id": "django__django-11564",
+    "repo": "django/django",
+    "elapsed_s": 30.2,
+    "fail_to_pass": "[\"test_add_script_name_prefix (settings_tests.tests.MediaURLStaticURLPrefixTest)\", \"test_not_prefixed (settings_tests.tests.MediaURLStaticURLPrefixTest)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: '/Users/kez/.pyenv/versions/3.6.2/lib/python3.6/pathlib.py'",
+    "broken_file": "/Users/kez/.pyenv/versions/3.6.2/lib/python3.6/pathlib.py",
+    "pr_url": "",
+    "instance_id": "django__django-11583",
+    "repo": "django/django",
+    "elapsed_s": 29.8,
+    "fail_to_pass": "[\"test_path_with_embedded_null_bytes (utils_tests.test_autoreload.TestIterModulesAndFiles)\", \"test_paths_are_pathlib_instances (utils_tests.test_autoreload.TestIterModulesAndFiles)\"]"
+  },
+  {
+    "fix_score": 0.2,
+    "error": null,
+    "broken_file": "django/contrib/contenttypes/views.py",
+    "pr_url": "",
+    "instance_id": "django__django-11620",
+    "repo": "django/django",
+    "elapsed_s": 47.5,
+    "fail_to_pass": "[\"test_technical_404_converter_raise_404 (view_tests.tests.test_debug.DebugViewTests)\"]"
+  },
+  {
+    "fix_score": 0.2,
+    "error": null,
+    "broken_file": "django/contrib/contenttypes/models.py",
+    "pr_url": "",
+    "instance_id": "django__django-11630",
+    "repo": "django/django",
+    "elapsed_s": 39.4,
+    "fail_to_pass": "[\"test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)\", \"test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/contrib/admin/forms.py",
+    "pr_url": "",
+    "instance_id": "django__django-11742",
+    "repo": "django/django",
+    "elapsed_s": 27.2,
+    "fail_to_pass": "[\"test_choices_in_max_length (invalid_models_tests.test_ordinary_fields.CharFieldTests)\", \"test_choices_named_group (invalid_models_tests.test_ordinary_fields.CharFieldTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/contrib/auth/models.py",
+    "pr_url": "",
+    "instance_id": "django__django-11797",
+    "repo": "django/django",
+    "elapsed_s": 22.1,
+    "fail_to_pass": "[\"test_exact_query_rhs_with_selected_columns (lookup.tests.LookupTests)\"]"
+  },
+  {
+    "fix_score": 0.2,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/db/migrations/operations/models.py",
+    "pr_url": "",
+    "instance_id": "django__django-11815",
+    "repo": "django/django",
+    "elapsed_s": 38.1,
+    "fail_to_pass": "[\"test_serialize_class_based_validators (migrations.test_writer.WriterTests)\", \"test_serialize_enums (migrations.test_writer.WriterTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/utils/http.py",
+    "pr_url": "eval:django__django-11848",
+    "instance_id": "django__django-11848",
+    "repo": "django/django",
+    "elapsed_s": 28.6,
+    "fail_to_pass": "[\"test_parsing_rfc850 (utils_tests.test_http.HttpDateProcessingTests)\", \"test_parsing_year_less_than_70 (utils_tests.test_http.HttpDateProcessingTests)\"]"
+  },
+  {
+    "fix_score": 1.0,
+    "error": null,
+    "broken_file": "django/db/models/lookups.py",
+    "pr_url": "eval:django__django-11905",
+    "instance_id": "django__django-11905",
+    "repo": "django/django",
+    "elapsed_s": 24.0,
+    "fail_to_pass": "[\"test_isnull_non_boolean_value (lookup.tests.LookupTests)\", \"test_iterator (lookup.tests.LookupTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "django/db/migrations/operations/fields.py",
+    "pr_url": "eval:django__django-11910",
+    "instance_id": "django__django-11910",
+    "repo": "django/django",
+    "elapsed_s": 22.2,
+    "fail_to_pass": "[\"test_rename_referenced_primary_key (migrations.test_autodetector.AutodetectorTests)\"]"
+  },
+  {
+    "fix_score": 0.42,
+    "error": null,
+    "broken_file": "django/db/models/fields/__init__.py",
+    "pr_url": "",
+    "instance_id": "django__django-11964",
+    "repo": "django/django",
+    "elapsed_s": 48.2,
+    "fail_to_pass": "[\"test_str (model_enums.tests.ChoicesTests)\", \"test_textchoices (model_enums.tests.ChoicesTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\django__django\\\\path/to/model.py'",
+    "broken_file": "path/to/model.py",
+    "pr_url": "",
+    "instance_id": "django__django-11999",
+    "repo": "django/django",
+    "elapsed_s": 23.1,
+    "fail_to_pass": "[\"test_overriding_FIELD_display (model_fields.tests.GetFieldDisplayTests)\"]"
+  },
+  {
+    "fix_score": 0.2,
+    "error": null,
+    "broken_file": "django/contrib/auth/models.py",
+    "pr_url": "",
+    "instance_id": "django__django-12113",
+    "repo": "django/django",
+    "elapsed_s": 37.6,
+    "fail_to_pass": "[\"test_custom_test_name (backends.sqlite.test_creation.TestDbSignatureTests)\"]"
+  },
+  {
+    "fix_score": 0.52,
+    "error": null,
+    "broken_file": "django/db/migrations/operations/models.py",
+    "pr_url": "",
+    "instance_id": "django__django-12125",
+    "repo": "django/django",
+    "elapsed_s": 46.8,
+    "fail_to_pass": "[\"test_serialize_nested_class (migrations.test_writer.WriterTests)\", \"test_serialize_numbers (migrations.test_writer.WriterTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: [Errno 2] No such file or directory: 'repos\\\\django__django\\\\path/to/view/file.py'",
+    "broken_file": "path/to/view/file.py",
+    "pr_url": "",
+    "instance_id": "django__django-12184",
+    "repo": "django/django",
+    "elapsed_s": 34.8,
+    "fail_to_pass": "[\"test_re_path_with_missing_optional_parameter (urlpatterns.tests.SimplifiedURLTests)\"]"
+  },
+  {
+    "fix_score": 0.4,
+    "error": null,
+    "broken_file": "django/db/models/fields/__init__.py",
+    "pr_url": "",
+    "instance_id": "django__django-12284",
+    "repo": "django/django",
+    "elapsed_s": 70.5,
+    "fail_to_pass": "[\"test_overriding_inherited_FIELD_display (model_fields.tests.GetFieldDisplayTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/conf/global_settings.py",
+    "pr_url": "",
+    "instance_id": "django__django-12286",
+    "repo": "django/django",
+    "elapsed_s": 34.4,
+    "fail_to_pass": "[\"test_valid_variant_consistent_language_settings (check_framework.test_translation.TranslationCheckTests)\"]"
+  },
+  {
+    "fix_score": 0.5,
+    "error": null,
+    "broken_file": "django/contrib/admin/utils.py",
+    "pr_url": "",
+    "instance_id": "django__django-12308",
+    "repo": "django/django",
+    "elapsed_s": 52.5,
+    "fail_to_pass": "[\"test_json_display_for_field (admin_utils.tests.UtilsTests)\", \"test_label_for_field (admin_utils.tests.UtilsTests)\"]"
+  },
+  {
+    "fix_score": 0.4,
+    "error": null,
+    "broken_file": "django/db/backends/base/creation.py",
+    "pr_url": "",
+    "instance_id": "django__django-12453",
+    "repo": "django/django",
+    "elapsed_s": 41.3,
+    "fail_to_pass": "[\"test_circular_reference (backends.base.test_creation.TestDeserializeDbFromString)\"]"
+  },
+  {
+    "fix_score": 0.5,
+    "error": null,
+    "broken_file": "django/db/models/base.py",
+    "pr_url": "",
+    "instance_id": "django__django-12470",
+    "repo": "django/django",
+    "elapsed_s": 58.2,
+    "fail_to_pass": "[\"test_inherited_ordering_pk_desc (model_inheritance.tests.ModelInheritanceTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/db/models/fields/related.py",
+    "pr_url": "",
+    "instance_id": "django__django-12497",
+    "repo": "django/django",
+    "elapsed_s": 34.4,
+    "fail_to_pass": "[\"test_ambiguous_relationship_model_from (invalid_models_tests.test_relative_fields.RelativeFieldTests)\", \"test_ambiguous_relationship_model_to (invalid_models_tests.test_relative_fields.RelativeFieldTests)\"]"
+  },
+  {
+    "fix_score": 0.0,
+    "error": "coder_agent failed: patch did not apply after 3 self-correction attempts",
+    "broken_file": "django/db/models/sql/query.py",
+    "pr_url": "",
+    "instance_id": "django__django-12589",
+    "repo": "django/django",
+    "elapsed_s": 28.4,
+    "fail_to_pass": "[\"test_aggregation_subquery_annotation_values_collision (aggregation.tests.AggregateTestCase)\"]"
+  },
+  {
+    "fix_score": 0.4,
+    "error": null,
+    "broken_file": "django/views/debug.py",
+    "pr_url": "",
+    "instance_id": "django__django-12700",
+    "repo": "django/django",
+    "elapsed_s": 36.6,
+    "fail_to_pass": "[\"test_cleanse_setting_recurses_in_list_tuples (view_tests.tests.test_debug.ExceptionReporterFilterTests)\"]"
+  },
+  {
+    "fix_score": 0.5,
+    "error": null,
+    "broken_file": "django/db/backends/base/schema.py",
+    "pr_url": "",
+    "instance_id": "django__django-12708",
+    "repo": "django/django",
+    "elapsed_s": 45.9,
+    "fail_to_pass": "[\"test_alter_index_together_remove_with_unique_together (migrations.test_operations.OperationTests)\"]"
+  },
+  {
+    "fix_score": 0.76,
+    "error": null,
+    "broken_file": "astropy/modeling/separable.py",
+    "pr_url": "",
+    "instance_id": "astropy__astropy-12907",
+    "repo": "astropy/astropy",
+    "elapsed_s": 64.7,
+    "fail_to_pass": "[\"astropy/modeling/tests/test_separable.py::test_separable[compound_model6-result6]\", \"astropy/modeling/tests/test_separable.py::test_separable[compound_model9-result9]\"]"
+  },
+  {
+    "fix_score": 1.0,
+    "error": null,
+    "broken_file": "django/contrib/auth/validators.py",
+    "pr_url": "eval:django__django-11099",
+    "instance_id": "django__django-11099",
+    "repo": "django/django",
+    "elapsed_s": 22.1,
+    "fail_to_pass": "[\"test_ascii_validator (auth_tests.test_validators.UsernameValidatorsTests)\", \"test_unicode_validator (auth_tests.test_validators.UsernameValidatorsTests)\", \"test_help_text (auth_tests.test_validators.UserAttributeSimilarityValidatorTest)\"]"
+  }
+]

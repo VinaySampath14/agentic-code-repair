@@ -25,9 +25,11 @@ INSTRUCTIONS
 6. Match existing code style exactly.
 7. If critic_feedback exists, address it directly.
 
-CRITICAL RULE: old_code must be a verbatim substring of the file shown above.
-Do NOT paraphrase or reformat. Copy character-for-character.
-If old_code does not exactly match text in the file, the patch will fail.
+CRITICAL RULES:
+1. old_code must be a verbatim substring of the file shown above.
+   Do NOT paraphrase or reformat. Copy character-for-character.
+2. Preserve exact indentation — count every space carefully.
+3. If old_code does not exactly match text in the file, the patch will fail.
 
 OUTPUT
 Return a JSON object with exactly these fields:

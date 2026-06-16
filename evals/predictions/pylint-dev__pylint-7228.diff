@@ -1,0 +1,11 @@
+--- a/pylint/config/config_initialization.py
++++ b/pylint/config/config_initialization.py
+@@ -54,7 +54,7 @@
+     unrecognized_options_message = None
+     # First we parse any options from a configuration file
+     try:
+-        linter._parse_configuration_file(config_args)
++        linter._parse_configuration_file([arg.replace('\p', '\\p') for arg in config_args])
+     except _UnrecognizedOptionError as exc:
+         unrecognized_options_message = ", ".join(exc.options)
+ 

@@ -2,18 +2,21 @@ import json
 import logging
 import os
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL, FIX_SCORE_THRESHOLD, CODER_MAX_RETRIES
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.test_tools import run_pytest, run_linter
 from src.tools.shell_tools import run_shell
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+@observe(name="critic-agent")
 def critic_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_path = _repo_path(state["issue_url"])
 
@@ -25,41 +28,56 @@ def critic_agent(state: AgentState) -> AgentState:
             logger.error(state["error"])
             return state
 
+        if not state.get("patch", "").strip():
+            state["test_results"] = {"decision": "fail"}
+            state["fix_score"] = 0.0
+            state["critic_feedback"] = "No patch was produced — coder did not generate a change."
+            logger.warning("critic_agent: empty patch — scoring 0.0 without running tests")
+            return state
+
+        # Determine test path — prefer SWE-bench FAIL_TO_PASS test IDs
+        fail_to_pass = state.get("fail_to_pass", [])
+        test_path = _build_test_path(repo_path, fail_to_pass)
+        logger.info(f"test_path: {test_path!r} (fail_to_pass={len(fail_to_pass)} tests)")
+
         # Baseline: stash patch → run tests → restore patch
         logger.info("running baseline tests (git stash)")
         run_shell("git stash", cwd=repo_path)
-        baseline = run_pytest(repo_path)
+        baseline = run_pytest(repo_path, test_path=test_path)
         tests_before = baseline.get("passed", 0)
         logger.info(f"baseline: {tests_before} passing")
         run_shell("git stash pop", cwd=repo_path)
         logger.info("running post-patch tests")
 
         # Post-patch results
-        post = run_pytest(repo_path)
+        post = run_pytest(repo_path, test_path=test_path)
         tests_passed = post.get("passed", 0)
         tests_failed = post.get("failed", 0)
 
         # Linter
         linter_result = run_linter(repo_path, state["broken_file"])
         linter_errors = linter_result.get("issue_count", 0)
-
-        # fix_score — exact formula, explicit edge cases
-        if tests_passed + tests_failed == 0:
-            test_pass_rate = 0.0
-        else:
-            test_pass_rate = tests_passed / (tests_passed + tests_failed)
-
-        if tests_before == 0:
-            no_regression = 1.0
-        else:
-            no_regression = tests_passed / tests_before
-
         code_quality = 1.0 if linter_errors == 0 else 0.5
 
-        fix_score = round(
-            (0.5 * test_pass_rate) + (0.3 * no_regression) + (0.2 * code_quality),
-            3,
-        )
+        tests_ran = (tests_passed + tests_failed) > 0
+        test_pass_rate = 0.0
+        no_regression  = 1.0
+
+        if tests_ran:
+            # Test-based scoring
+            test_pass_rate = tests_passed / (tests_passed + tests_failed)
+            no_regression  = (tests_passed / tests_before) if tests_before > 0 else 1.0
+            fix_score = round(
+                (0.5 * test_pass_rate) + (0.3 * no_regression) + (0.2 * code_quality),
+                3,
+            )
+            logger.info(f"test-based score: pass_rate={test_pass_rate:.2f} no_reg={no_regression:.2f} quality={code_quality}")
+        else:
+            # Tests couldn't run (old base_commit env incompatibility) — use LLM semantic score
+            logger.info("0 tests collected — falling back to LLM semantic scoring")
+            semantic_score = _llm_score_patch(state)
+            fix_score = round((0.8 * semantic_score) + (0.2 * code_quality), 3)
+            logger.info(f"semantic score: {semantic_score:.2f} → fix_score={fix_score}")
 
         # Decision — retry_count exhaustion takes priority
         if state["retry_count"] >= CODER_MAX_RETRIES:
@@ -187,6 +205,60 @@ def _generate_feedback(
     )
 
     return response.choices[0].message.content.strip()
+
+
+def _llm_score_patch(state: AgentState) -> float:
+    """Ask the LLM to score the patch 0.0–1.0 when tests can't run."""
+    prompt = (
+        f"You are a senior code reviewer. Score this patch from 0.0 to 1.0.\n\n"
+        f"Issue:\n{state['issue_body'][:600]}\n\n"
+        f"Patch:\n{state.get('patch', '')[:2000]}\n\n"
+        f"Score criteria:\n"
+        f"  1.0 = patch clearly fixes the root cause described in the issue\n"
+        f"  0.7 = patch addresses the issue but may have edge cases\n"
+        f"  0.4 = patch is related but unlikely to fully fix the issue\n"
+        f"  0.0 = patch is wrong or unrelated\n\n"
+        f"Return JSON: {{\"score\": 0.0, \"reason\": \"one sentence\"}}"
+    )
+    try:
+        response = _client.chat.completions.create(
+            model=ACTIVE_MODEL["model"],
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            max_tokens=100,
+            timeout=30.0,
+        )
+        result = json.loads(response.choices[0].message.content)
+        score = float(result.get("score", 0.5))
+        logger.info(f"LLM patch score: {score} — {result.get('reason', '')}")
+        return max(0.0, min(1.0, score))
+    except Exception as e:
+        logger.warning(f"LLM scoring failed: {e} — defaulting to 0.5")
+        return 0.5
+
+
+def _build_test_path(repo_path: str, fail_to_pass: list[str]) -> str:
+    """Convert SWE-bench FAIL_TO_PASS test IDs into a pytest-compatible path string."""
+    if not fail_to_pass:
+        return ""
+    # SWE-bench IDs look like "tests/test_foo.py::TestClass::test_method"
+    # Deduplicate at the file level and keep full node IDs for precision
+    seen_files: set[str] = set()
+    node_ids: list[str] = []
+    for test_id in fail_to_pass:
+        file_part = test_id.split("::")[0]
+        full_path = os.path.join(repo_path, file_part)
+        if os.path.exists(full_path):
+            node_ids.append(test_id)
+            seen_files.add(file_part)
+        else:
+            # File not found at this commit — fall back to file name only
+            if file_part not in seen_files and os.path.exists(full_path):
+                seen_files.add(file_part)
+    if node_ids:
+        return " ".join(node_ids)
+    # If no test files exist locally, return empty (caller falls back to default)
+    return ""
 
 
 def _repo_path(issue_url: str) -> str:

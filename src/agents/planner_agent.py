@@ -3,17 +3,20 @@ import logging
 import os
 import subprocess
 from datetime import datetime
-from openai import OpenAI
 from src.state import AgentState
 
 logger = logging.getLogger(__name__)
 from src.config import ACTIVE_MODEL
+from src.tracing import OpenAI, observe, langfuse_context
 from src.tools.github_tools import get_repo_structure, search_codebase
 
 _client = OpenAI(api_key=ACTIVE_MODEL["api_key"], base_url=ACTIVE_MODEL["base_url"], timeout=60.0)
 
 
+@observe(name="planner-agent")
 def planner_agent(state: AgentState) -> AgentState:
+    if langfuse_context is not None:
+        langfuse_context.update_current_trace(session_id=state.get("instance_id", ""))
     try:
         repo_full_name = _parse_repo(state["issue_url"])
         repo_path = _repo_path(state["issue_url"])
@@ -33,6 +36,8 @@ def planner_agent(state: AgentState) -> AgentState:
         except Exception as e:
             logger.warning(f"GitHub API failed for repo structure ({type(e).__name__}) — using local clone")
             repo_structure = _local_repo_structure(repo_path)
+
+        repo_structure = _trim_repo_structure(repo_structure)
 
         logger.info("searching codebase")
         try:
@@ -97,6 +102,35 @@ def _parse_repo(issue_url: str) -> str:
 def _repo_path(issue_url: str) -> str:
     parts = issue_url.rstrip("/").split("/")
     return os.path.join("repos", f"{parts[3]}__{parts[4]}")
+
+
+_SKIP_DIRS = {
+    "tests", "test", "docs", "doc", "build", "dist", ".git",
+    "node_modules", "__pycache__", ".tox", ".eggs", "venv",
+    "site-packages", "examples", "benchmarks", "fixtures",
+}
+_MAX_STRUCTURE_LINES = 300
+
+
+def _trim_repo_structure(raw: str) -> str:
+    """Keep only source .py files, drop noise dirs, cap at 300 lines."""
+    lines = []
+    for line in raw.splitlines():
+        parts = line.replace("\\", "/").split("/")
+        # Skip if any path component is a noise dir
+        if any(p.lower() in _SKIP_DIRS for p in parts[:-1]):
+            continue
+        # Keep only Python source files
+        if not line.endswith(".py"):
+            continue
+        lines.append(line)
+
+    if len(lines) > _MAX_STRUCTURE_LINES:
+        lines = lines[:_MAX_STRUCTURE_LINES]
+        lines.append(f"... ({len(raw.splitlines())} total entries, trimmed to {_MAX_STRUCTURE_LINES})")
+
+    logger.info(f"repo structure trimmed to {len(lines)} lines")
+    return "\n".join(lines)
 
 
 def _local_repo_structure(repo_path: str) -> str:
