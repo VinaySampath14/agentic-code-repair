@@ -1,0 +1,11 @@
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -184,7 +184,7 @@
+             return super().__str__()
+         model = self.model
+         app = model._meta.app_label
+-        return '%s.%s.%s' % (app, model._meta.object_name, self.name)
++        return str(self.get_prep_value())
+ 
+     def __repr__(self):
+         """Display the module, class, and name of the field."""

@@ -1,0 +1,11 @@
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -108,6 +108,8 @@
+     """Iterate through all modules needed to be watched."""
+     sys_file_paths = []
+     for module in modules:
++        if module.__name__ == 'manage':
++            sys_file_paths.append(module.__file__)
+         # During debugging (with PyDev) the 'typing.io' and 'typing.re' objects
+         # are added to sys.modules, however they are types not modules and so
+         # cause issues here.

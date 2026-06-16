@@ -1,0 +1,11 @@
+--- a/src/requests/adapters.py
++++ b/src/requests/adapters.py
+@@ -368,7 +368,7 @@
+                     # All is well, return the connection to the pool.
+                     conn._put_conn(low_conn)
+ 
+-        except socket.error as sockerr:
++        except (socket.error, IOError) as sockerr:
+             raise ConnectionError(sockerr, request=request)
+ 
+         except MaxRetryError as e:

@@ -1,0 +1,11 @@
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -268,6 +268,8 @@
+                     for value, human_name in group_choices
+                 ):
+                     break
++                self.choices = list(self.choices)
++                self.choices.extend(B.foo_choice)
+                 if self.max_length is not None and group_choices:
+                     choice_max_length = max([
+                         choice_max_length,

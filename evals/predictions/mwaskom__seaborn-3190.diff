@@ -1,0 +1,11 @@
+--- a/seaborn/_core/plot.py
++++ b/seaborn/_core/plot.py
+@@ -1244,7 +1244,7 @@
+             if scale is None:
+                 self._scales[var] = Scale._identity()
+             else:
+-                self._scales[var] = scale._setup(var_df[var], prop)
++                self._scales[var] = scale._setup(var_df[var].astype(int), prop)
+ 
+             # Everything below here applies only to coordinate variables
+             # We additionally skip it when we're working with a value

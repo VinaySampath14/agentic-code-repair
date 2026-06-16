@@ -1,0 +1,13 @@
+--- a/sympy/functions/elementary/trigonometric.py
++++ b/sympy/functions/elementary/trigonometric.py
+@@ -352,8 +352,8 @@
+         tan_half = tan(S.Half*arg)
+         return 2*tan_half/(1 + tan_half**2)
+ 
+-    def _eval_rewrite_as_sincos(self, arg):
+-        return sin(arg)*cos(arg)/cos(arg)
++    def _eval_rewrite_as_sinc(self, arg):
++        return Piecewise((sin(arg)/arg, Ne(arg, 0)), (1, True))
+ 
+     def _eval_rewrite_as_cot(self, arg):
+         cot_half = cot(S.Half*arg)

@@ -1,0 +1,15 @@
+--- a/src/requests/api.py
++++ b/src/requests/api.py
+@@ -24,6 +24,12 @@
+ def request(
+     method: str, url: _t.UriType, **kwargs: Unpack[_t.RequestKwargs]
+ ) -> Response:
++    if 'files' in kwargs:
++        for file_tuple in kwargs['files'].values():
++            if isinstance(file_tuple, tuple) and len(file_tuple) > 1:
++                file_obj = file_tuple[1]
++                if isinstance(file_obj, io.TextIOWrapper):
++                    raise TypeError("File-like objects must be opened in binary mode.")
+     """Constructs and sends a :class:`Request <Request>`.
+ 
+     :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.

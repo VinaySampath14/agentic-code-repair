@@ -1,0 +1,18 @@
+--- a/astropy/nddata/mixins/ndarithmetic.py
++++ b/astropy/nddata/mixins/ndarithmetic.py
+@@ -332,9 +332,12 @@
+             else:
+                 kwargs["mask"] = deepcopy(self.mask)
+         else:
+-            kwargs["mask"] = self._arithmetic_mask(
+-                operation, operand, handle_mask, axis=axis, **kwds2["mask"]
+-            )
++            if self.mask is None and operand.mask is not None:
++                kwargs["mask"] = deepcopy(operand.mask)
++            else:
++                kwargs["mask"] = self._arithmetic_mask(
++                    operation, operand, handle_mask, axis=axis, **kwds2["mask"]
++                )
+ 
+         if handle_meta is None:
+             kwargs["meta"] = None

@@ -1,0 +1,12 @@
+--- a/django/core/files/uploadedfile.py
++++ b/django/core/files/uploadedfile.py
+@@ -58,7 +58,8 @@
+     """
+     def __init__(self, name, content_type, size, charset, content_type_extra=None):
+         _, ext = os.path.splitext(name)
+-        file = tempfile.NamedTemporaryFile(suffix='.upload' + ext, dir=settings.FILE_UPLOAD_TEMP_DIR)
++        file = tempfile.NamedTemporaryFile(suffix='.upload' + ext, dir=settings.FILE_UPLOAD_TEMP_DIR, mode='w+b')
++        os.fchmod(file.fileno(), 0o644)
+         super().__init__(file, name, content_type, size, charset, content_type_extra)
+ 
+     def temporary_file_path(self):

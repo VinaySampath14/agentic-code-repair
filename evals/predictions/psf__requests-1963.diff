@@ -1,0 +1,11 @@
+--- a/src/requests/sessions.py
++++ b/src/requests/sessions.py
+@@ -99,7 +99,7 @@
+             resp.close()
+ 
+             url = resp.headers['location']
+-            method = req.method
++            method = 'GET' if resp.status_code == codes.see_other and method != 'HEAD' else req.method
+ 
+             # Handle redirection without scheme (see: RFC 1808 Section 4)
+             if url.startswith('//'):

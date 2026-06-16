@@ -1,0 +1,15 @@
+--- a/xarray/structure/concat.py
++++ b/xarray/structure/concat.py
+@@ -396,10 +396,8 @@
+         concat_over_existing_dim = False
+ 
+     if data_vars == "minimal" and coords == "minimal" and not concat_over_existing_dim:
+-        raise ValueError(
+-            "Cannot specify both data_vars='minimal' and coords='minimal' when "
+-            "concatenating over a new dimension."
+-        )
++        data_vars = "all"
++        coords = "all"
+ 
+     if data_vars is None or (
+         isinstance(data_vars, CombineKwargDefault) and data_vars._value is None

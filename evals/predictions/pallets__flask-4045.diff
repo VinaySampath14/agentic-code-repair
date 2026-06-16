@@ -1,0 +1,11 @@
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -96,6 +96,8 @@
+         defaults = self.url_defaults
+         if "defaults" in options:
+             defaults = dict(defaults, **options.pop("defaults"))
++        if '.' in self.blueprint.name:
++            raise ValueError("Blueprint name should not contain dots")
+         self.app.add_url_rule(
+             rule,
+             f"{self.name_prefix}{self.blueprint.name}.{endpoint}",

@@ -12,6 +12,11 @@ MODEL_CONFIG = {
         "model": "gpt-4o",
         "api_key": os.getenv("OPENAI_API_KEY"),
     },
+    "mini": {
+        "base_url": "https://api.openai.com/v1",
+        "model": "gpt-4o-mini",
+        "api_key": os.getenv("OPENAI_API_KEY"),
+    },
     "local": {
         "base_url": "http://localhost:8000/v1",
         "model": "Qwen/Qwen2.5-Coder-32B-Instruct",

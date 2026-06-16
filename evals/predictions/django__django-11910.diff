@@ -1,0 +1,12 @@
+--- a/django/db/migrations/operations/fields.py
++++ b/django/db/migrations/operations/fields.py
+@@ -380,7 +380,8 @@
+     def references_field(self, model_name, name, app_label=None):
+         return self.references_model(model_name) and (
+             name.lower() == self.old_name_lower or
+-            name.lower() == self.new_name_lower
++            name.lower() == self.new_name_lower or
++            name.lower() == self.field.remote_field.field_name.lower()
+         )
+ 
+     def reduce(self, operation, app_label=None):

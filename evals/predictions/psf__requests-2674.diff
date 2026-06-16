@@ -1,0 +1,11 @@
+--- a/src/requests/adapters.py
++++ b/src/requests/adapters.py
+@@ -377,7 +377,7 @@
+         except _ProxyError as e:
+             raise ProxyError(e)
+ 
+-        except (_SSLError, _HTTPError) as e:
++        except (_SSLError, _HTTPError, TimeoutError) as e:
+             if isinstance(e, _SSLError):
+                 raise SSLError(e, request=request)
+             elif isinstance(e, TimeoutError):

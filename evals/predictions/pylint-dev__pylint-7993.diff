@@ -1,0 +1,11 @@
+--- a/pylint/message/message.py
++++ b/pylint/message/message.py
+@@ -76,7 +76,7 @@
+         The template format is the one of the format method :
+         cf. https://docs.python.org/2/library/string.html#formatstrings
+         """
+-        return template.format(**asdict(self))
++        return template.format_map(asdict(self))
+ 
+     @property
+     def location(self) -> MessageLocationTuple:
