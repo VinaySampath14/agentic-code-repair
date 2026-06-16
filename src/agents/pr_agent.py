@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import subprocess
 from datetime import datetime
 from github import Github, GithubException
 from src.state import AgentState
@@ -43,6 +44,7 @@ def pr_agent(state: AgentState) -> AgentState:
 
         else:
             repo_full_name = _parse_repo(state["issue_url"])
+            _push_branch(state["issue_url"], branch, state.get("change_description", "agent fix"))
             pr_url = create_pr(
                 repo_full_name=repo_full_name,
                 title=pr_title,
@@ -121,6 +123,32 @@ def _add_label(pr_url: str, label: str) -> None:
         pr.add_to_labels(label)
     except GithubException:
         pass  # label may not exist — non-fatal
+
+
+def _push_branch(issue_url: str, branch: str, commit_msg: str) -> None:
+    parts = issue_url.rstrip("/").split("/")
+    repo_path = os.path.join("repos", f"{parts[3]}__{parts[4]}")
+    if not os.path.isdir(repo_path):
+        logger.warning(f"_push_branch: repo not found at {repo_path}")
+        return
+
+    def _git(cmd: str) -> subprocess.CompletedProcess:
+        return subprocess.run(cmd, shell=True, cwd=repo_path,
+                              capture_output=True, text=True)
+
+    _git("git config user.email 'agent@swe-agent.local'")
+    _git("git config user.name 'SWE-Agent'")
+    _git(f"git checkout -b {branch}")
+    _git("git add -A")
+    result = _git(f'git commit -m "{commit_msg}"')
+    if result.returncode != 0:
+        logger.warning(f"_push_branch: commit failed — {result.stderr.strip()}")
+        return
+    push = _git(f"git push origin {branch}")
+    if push.returncode != 0:
+        logger.error(f"_push_branch: push failed — {push.stderr.strip()}")
+        raise RuntimeError(f"git push failed: {push.stderr.strip()}")
+    logger.info(f"_push_branch: pushed {branch}")
 
 
 def _parse_repo(issue_url: str) -> str:
