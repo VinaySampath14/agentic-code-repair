@@ -43,7 +43,7 @@ def _resolve_local(repo_path: str, path: str) -> str:
 
 def _read_file_with_fallback(repo_full_name: str, path: str, repo_path: str) -> str:
     """Try local clone first (with prefix fallback for old base_commits), then GitHub API."""
-    local = _resolve_local(repo_path, path)
+    local = _resolve_local(repo_path, path.lstrip('/'))
     if os.path.isfile(local):
         with open(local, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
