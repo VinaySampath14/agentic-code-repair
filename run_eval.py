@@ -27,12 +27,12 @@ RESULTS_PATH    = os.path.join("evals", "results.json")
 
 # Repos confirmed working — used when --repos flag is passed
 WORKING_REPOS = [
-    "django/django",
-    "pylint-dev/pylint",
-    "astropy/astropy",
-    "mwaskom/seaborn",
-    "pallets/flask",
-    "pydata/xarray",
+    "psf/requests",          # 3/6 approved, avg 0.68 — best performer
+    "astropy/astropy",       # 4/4 coder success
+    "mwaskom/seaborn",       # 3/3 coder success
+    "pylint-dev/pylint",     # ~2/4 coder success
+    "pallets/flask",         # 1/2 coder success
+    "django/django",         # large pool, mixed success
 ]
 
 

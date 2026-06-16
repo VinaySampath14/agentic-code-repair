@@ -60,6 +60,8 @@ def critic_agent(state: AgentState) -> AgentState:
         code_quality = 1.0 if linter_errors == 0 else 0.5
 
         tests_ran = (tests_passed + tests_failed) > 0
+        test_pass_rate = 0.0
+        no_regression  = 1.0
 
         if tests_ran:
             # Test-based scoring
