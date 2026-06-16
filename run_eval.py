@@ -25,7 +25,18 @@ PREDICTIONS_DIR = os.path.join("evals", "predictions")
 RESULTS_PATH    = os.path.join("evals", "results.json")
 
 
-def load_tasks(n: int, repo: str, task_ids: list[str] | None, force: bool = False) -> list[dict]:
+# Repos confirmed working — used when --repos flag is passed
+WORKING_REPOS = [
+    "django/django",
+    "pylint-dev/pylint",
+    "astropy/astropy",
+    "mwaskom/seaborn",
+    "pallets/flask",
+    "pydata/xarray",
+]
+
+
+def load_tasks(n: int, repo: str, task_ids: list[str] | None, force: bool = False, repos: list[str] | None = None) -> list[dict]:
     from datasets import load_dataset
     print("Loading SWE-bench Lite dataset from HuggingFace...")
     ds = load_dataset("princeton-nlp/SWE-bench_Lite", split="test")
@@ -33,6 +44,20 @@ def load_tasks(n: int, repo: str, task_ids: list[str] | None, force: bool = Fals
 
     if task_ids:
         tasks = [t for t in tasks if t["instance_id"] in task_ids]
+    elif repos:
+        tasks = [t for t in tasks if t["repo"] in repos]
+        # Interleave by repo for spread
+        by_repo: dict[str, list] = {}
+        for t in tasks:
+            by_repo.setdefault(t["repo"], []).append(t)
+        interleaved: list[dict] = []
+        while any(by_repo.values()):
+            for r in list(by_repo.keys()):
+                if by_repo[r]:
+                    interleaved.append(by_repo[r].pop(0))
+                if not by_repo[r]:
+                    del by_repo[r]
+        tasks = interleaved
     else:
         tasks = [t for t in tasks if t["repo"] == repo]
 
@@ -63,12 +88,14 @@ def run_task(task: dict) -> dict:
     print(f"{'='*60}")
 
     base_commit = task.get("base_commit", "")
+    fail_to_pass = task.get("FAIL_TO_PASS", "[]")
     cmd = [
         sys.executable, "main.py",
-        "--issue-url",   issue_url,
-        "--issue-body",  problem_statement,
-        "--instance-id", instance_id,
+        "--issue-url",    issue_url,
+        "--issue-body",   problem_statement,
+        "--instance-id",  instance_id,
         "--eval",
+        "--fail-to-pass", fail_to_pass if isinstance(fail_to_pass, str) else json.dumps(fail_to_pass),
     ]
     if base_commit:
         cmd += ["--base-commit", base_commit]
@@ -150,6 +177,20 @@ def patch_similarity(pred_path: str, gold_patch: str) -> float:
     return len(pred_files & gold_files) / len(gold_files)
 
 
+def save_results(results: list[dict]) -> None:
+    """Upsert results into results.json — safe to call after every task."""
+    os.makedirs("evals", exist_ok=True)
+    existing = []
+    if os.path.exists(RESULTS_PATH):
+        with open(RESULTS_PATH) as f:
+            existing = json.load(f)
+    by_id = {r["instance_id"]: r for r in existing}
+    for r in results:
+        by_id[r["instance_id"]] = {k: v for k, v in r.items() if k != "gold_patch"}
+    with open(RESULTS_PATH, "w") as f:
+        json.dump(list(by_id.values()), f, indent=2)
+
+
 def print_summary(results: list[dict]) -> None:
     print(f"\n{'='*75}")
     print(f"{'EVAL SUMMARY':^75}")
@@ -176,38 +217,26 @@ def print_summary(results: list[dict]) -> None:
         f"|  Avg score: {avg:.3f}"
     )
     print("=" * 75)
-
-    # Persist results
-    os.makedirs("evals", exist_ok=True)
-    existing = []
-    if os.path.exists(RESULTS_PATH):
-        with open(RESULTS_PATH) as f:
-            existing = json.load(f)
-
-    # Upsert by instance_id
-    by_id = {r["instance_id"]: r for r in existing}
-    for r in results:
-        by_id[r["instance_id"]] = {k: v for k, v in r.items() if k != "gold_patch"}
-
-    with open(RESULTS_PATH, "w") as f:
-        json.dump(list(by_id.values()), f, indent=2)
+    save_results(results)
     print(f"\nResults saved -> {RESULTS_PATH}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Eval runner for SWE-bench Lite")
-    parser.add_argument("--n",     type=int, default=5,              help="Max tasks to run")
-    parser.add_argument("--repo",  type=str, default="psf/requests", help="Filter by repo")
-    parser.add_argument("--tasks", type=str, default=None,           help="Comma-separated instance IDs")
-    parser.add_argument("--force", action="store_true",              help="Re-run even if prediction already exists")
+    parser.add_argument("--n",        type=int, default=5,              help="Max tasks to run")
+    parser.add_argument("--repo",     type=str, default="psf/requests", help="Filter by single repo")
+    parser.add_argument("--tasks",    type=str, default=None,           help="Comma-separated instance IDs")
+    parser.add_argument("--force",    action="store_true",              help="Re-run even if prediction already exists")
+    parser.add_argument("--working",  action="store_true",              help="Use only confirmed-working repos (WORKING_REPOS list)")
     args = parser.parse_args()
 
     os.makedirs(PREDICTIONS_DIR, exist_ok=True)
 
     task_ids = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
-    repo     = None if task_ids else args.repo
+    repos    = WORKING_REPOS if args.working else None
+    repo     = None if (task_ids or repos) else args.repo
 
-    tasks = load_tasks(args.n, repo=repo, task_ids=task_ids, force=args.force)
+    tasks = load_tasks(args.n, repo=repo, task_ids=task_ids, force=args.force, repos=repos)
     if not tasks:
         print("No tasks to run -- all already predicted or no matches found.")
         return
@@ -240,6 +269,8 @@ def main() -> None:
                 "elapsed_s":   0,
                 "gold_patch":  task.get("patch", ""),
             })
+        # Save after every task so interrupts don't lose progress
+        save_results(results)
 
     print_summary(results)
 
