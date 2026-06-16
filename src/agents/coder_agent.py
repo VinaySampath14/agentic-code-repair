@@ -26,6 +26,8 @@ def coder_agent(state: AgentState) -> AgentState:
         if not broken_file or broken_file.lower() in ("n/a", "none", "unknown"):
             state["error"] = f"coder_agent: broken_file is '{broken_file}' — Explorer could not identify the file to patch"
             logger.error(state["error"])
+            state["fix_score"] = 0.0
+            state["fix_score"] = 0.0
             return state
 
         relevant_code = _read_local_relevant_code(repo_path, state)

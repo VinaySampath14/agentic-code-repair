@@ -73,7 +73,7 @@ def critic_agent(state: AgentState) -> AgentState:
             )
             logger.info(f"test-based score: pass_rate={test_pass_rate:.2f} no_reg={no_regression:.2f} quality={code_quality}")
         else:
-            # Tests couldn't run (old base_commit env incompatibility) — use LLM semantic score
+            # If no tests were collected, fallback to LLM semantic score instead of capping fix_score
             logger.info("0 tests collected — falling back to LLM semantic scoring")
             semantic_score = _llm_score_patch(state)
             fix_score = round((0.8 * semantic_score) + (0.2 * code_quality), 3)
