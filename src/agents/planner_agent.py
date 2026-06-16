@@ -72,7 +72,7 @@ def planner_agent(state: AgentState) -> AgentState:
         _validate(result, ["core_problem", "affected_files", "complexity", "confidence"])
 
         state["core_problem"] = result["core_problem"]
-        state["affected_files"] = result["affected_files"]
+        state["affected_files"] = [f for f in result["affected_files"] if not f.startswith(('tests/', 'test/'))]
         state["complexity"] = result["complexity"]
         state["planner_confidence"] = result["confidence"]
         logger.info(f"done — {len(result['affected_files'])} files, confidence={result['confidence']}")
