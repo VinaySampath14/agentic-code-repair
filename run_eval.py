@@ -239,6 +239,7 @@ def main() -> None:
     tasks = load_tasks(args.n, repo=repo, task_ids=task_ids, force=args.force, repos=repos)
     if not tasks:
         print("No tasks to run -- all already predicted or no matches found.")
+        print_summary(results)
         return
 
     print(f"Running {len(tasks)} task(s)...\n")
