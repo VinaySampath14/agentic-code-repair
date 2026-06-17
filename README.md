@@ -2,7 +2,7 @@
 
 Give it a GitHub issue URL, it opens a draft PR. No other input needed.
 
-Built as a portfolio project for M.Sc. Digital Engineering at Bauhaus-Universität Weimar. Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench).
+Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench) — 50 real bugs across Django, Sympy, scikit-learn, and 8 other OSS repos.
 
 ---
 
@@ -14,7 +14,16 @@ Built as a portfolio project for M.Sc. Digital Engineering at Bauhaus-Universit�
 | B — multi-agent pipeline | GPT-4o | 42% (21/50) | 0.46 |
 | C — multi-agent (local) | Qwen2.5-Coder-32B | in progress | — |
 
-Same 50 SWE-bench Lite tasks across all three configs. Config C is running on Bauhaus HPC via vLLM + SLURM.
+Same 50 tasks across all configs. Config C is running on Bauhaus HPC via vLLM + SLURM — results will be added when complete.
+
+---
+
+## Demo
+
+> Open a GitHub issue -> pipeline fires automatically -> draft PR appears
+
+<!-- replace with GIF after recording -->
+![demo](docs/demo.gif)
 
 ---
 
@@ -51,24 +60,22 @@ GitHub Issue
 
 ### Scoring
 
+The Critic scores every patch before deciding to approve, retry, or fail:
+
 ```
-# when tests run:
-fix_score = 0.5 * test_pass_rate + 0.3 * no_regression + 0.2 * code_quality
-
-# when tests can't run (incompatible env at old base_commit):
-fix_score = 0.8 * llm_semantic_score + 0.2 * code_quality
+fix_score = 0.5 * test_pass_rate
+          + 0.3 * no_regression        (rate, not binary)
+          + 0.2 * code_quality
 ```
 
-Patches above 0.6 go through a semantic root-cause check before approval.
+At historical `base_commit` checkpoints, package incompatibilities often cause pytest to collect 0 tests. In that case the formula switches to:
 
----
+```
+fix_score = 0.8 * llm_semantic_score
+          + 0.2 * code_quality
+```
 
-## Demo
-
-> Open a GitHub issue -> pipeline fires automatically -> draft PR appears
-
-<!-- replace with GIF after recording -->
-![demo](docs/demo.gif)
+Patches that reach 0.6 go through one more check — a separate LLM call that asks whether the patch actually addresses the root cause in the issue. If not, it retries.
 
 ---
 
