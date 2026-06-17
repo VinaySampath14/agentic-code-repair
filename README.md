@@ -1,8 +1,8 @@
 # Agentic Code Repair
 
-Give it a GitHub issue URL. It reads the codebase, finds the broken code, writes a patch, runs the tests, and opens a draft PR — no human input beyond the issue.
+Give it a GitHub issue URL. It reads the codebase, finds the broken code, writes a patch, runs the tests, and opens a draft PR; no human input beyond the issue.
 
-Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench) — 50 real bugs across Django, Sympy, scikit-learn, and 8 other OSS repos.
+Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench); 50 real bugs across Django, Sympy, scikit-learn, and 8 other OSS repos.
 
 ---
 
@@ -12,7 +12,7 @@ Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench) — 50
 |--------|-------|----------|-----------|
 | A — single-agent baseline | GPT-4o | 4% (2/50) | 0.21 |
 | B — multi-agent pipeline | GPT-4o | 42% (21/50) | 0.46 |
-| C — multi-agent (local) | Qwen2.5-Coder-32B | in progress | — |
+| C — multi-agent (local) | Qwen2.5-Coder-32B | in progress | results will be added |
 
 Same 50 tasks across all configs. Config C is running on Bauhaus HPC via vLLM + SLURM — results will be added when complete.
 
