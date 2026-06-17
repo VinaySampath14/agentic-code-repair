@@ -58,6 +58,8 @@ def coder_agent(state: AgentState) -> AgentState:
         state["changed_files"] = result["changed_files"]
         state["change_description"] = result["change_description"]
 
+        # Reset working tree to original state
+        run_shell("git checkout -- .", cwd=repo_path)
         state["trace"].append({
             "agent":                  "coder",
             "timestamp":              datetime.utcnow().isoformat(),
