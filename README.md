@@ -1,6 +1,6 @@
 # Agentic Code Repair
 
-Give it a GitHub issue URL, it opens a draft PR. No other input needed.
+Give it a GitHub issue URL. It reads the codebase, finds the broken code, writes a patch, runs the tests, and opens a draft PR — no human input beyond the issue.
 
 Evaluated on [SWE-bench Lite](https://github.com/princeton-nlp/SWE-bench) — 50 real bugs across Django, Sympy, scikit-learn, and 8 other OSS repos.
 
@@ -29,33 +29,39 @@ Same 50 tasks across all configs. Config C is running on Bauhaus HPC via vLLM + 
 
 ## How it works
 
-```
-GitHub Issue
-     │
-     ▼
-┌─────────────┐
-│   Planner   │  reads repo structure, identifies files to look at
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Explorer  │  reads source files iteratively, finds what's broken
-└──────┬──────┘
-       │ (replan <=2x if confidence low)
-       ▼
-┌─────────────┐
-│    Coder    │  generates patch (old_code -> new_code), self-corrects <=3x
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Critic    │  runs tests, scores 0-1, decides approve / retry / fail
-└──────┬──────┘
-       │ (retry <=3x if score < 0.6)
-       ▼
-┌─────────────┐
-│  PR Agent   │  pushes branch, opens draft PR
-└─────────────┘
+```mermaid
+flowchart TD
+    Issue([GitHub Issue URL])
+
+    Issue --> Planner
+
+    Planner["Planner
+    GitHub API · code search
+    identifies affected files"]
+
+    Explorer["Explorer
+    read_file · local clone scan
+    finds broken_file + broken_function"]
+
+    Coder["Coder
+    git apply · patch_tools
+    generates and applies patch"]
+
+    Critic["Critic
+    pytest · ruff
+    scores patch 0-1"]
+
+    PR["PR Agent
+    git push · GitHub API
+    opens draft PR"]
+
+    Planner --> Explorer
+    Explorer --> Coder
+    Coder --> Critic
+    Critic --> PR
+
+    Explorer -. "low confidence — replan up to 2x" .-> Planner
+    Critic -. "score < 0.6 — retry up to 3x" .-> Coder
 ```
 
 ### Scoring
