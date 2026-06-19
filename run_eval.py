@@ -239,6 +239,16 @@ def main() -> None:
     tasks = load_tasks(args.n, repo=repo, task_ids=task_ids, force=args.force, repos=repos)
     if not tasks:
         print("No tasks to run -- all already predicted or no matches found.")
+        existing = []
+        if os.path.exists(RESULTS_PATH):
+            with open(RESULTS_PATH) as f:
+                existing = json.load(f)
+        if task_ids:
+            existing = [r for r in existing if r["instance_id"] in task_ids]
+        elif repo:
+            existing = [r for r in existing if r.get("repo") == repo]
+        if existing:
+            print_summary(existing)
         return
 
     print(f"Running {len(tasks)} task(s)...\n")
