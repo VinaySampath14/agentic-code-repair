@@ -97,6 +97,33 @@ else:
 
 ---
 
+## 7. MCP integration: expose pipeline as MCP server, keep GitHub tools as PyGithub
+
+The pipeline is exposed as an MCP server (`src/mcp_server.py`) so Claude Desktop and other MCP-aware clients can call `fix_github_issue(url)` as a tool. This is additive — the existing webhook (`src/webhook.py`) and CLI (`main.py`) are unchanged.
+
+**What was NOT migrated to GitHub MCP server:**
+- `read_file` and `get_repo_structure` — called 4–8 times per task in the Explorer hot loop; need the PyGithub caching layer to avoid rate limits
+- `create_pr` and `search_codebase` — candidates for GitHub MCP migration (low frequency, no caching needed); deferred to keep scope small
+
+**Why build the MCP server but not fully consume GitHub MCP:**
+The goal was demonstrating both sides of the protocol (building a server + understanding consumption trade-offs) without regressing the 42% approval rate on SWE-bench Lite.
+
+**What to say in interviews:** "I exposed the pipeline as an MCP server so any MCP-aware client can call it as a tool. I chose not to replace the GitHub API calls with the GitHub MCP server because my Explorer reads 4–8 files per task and needs the PyGithub caching layer to avoid rate limits. MCP is best for lower-frequency, externally-facing operations."
+
+---
+
+## 8. quick_mode: skip pytest for MCP/demo use
+
+MCP tool calls in Claude Desktop have a ~60s timeout. The full pipeline takes 1–2 minutes (5 agents + pytest with 30s timeout). To make the demo work within the timeout, added a `quick_mode` flag to `AgentState`.
+
+When `quick_mode=True`, the Critic skips the pytest baseline + post-patch runs and jumps directly to the existing LLM semantic scoring fallback (already present for historical base_commit environments where tests can't collect). Fix score formula in quick_mode: `0.8 * llm_semantic_score + 0.2 * code_quality`. Pipeline runtime drops to ~30–40s.
+
+**What was NOT changed:** `eval_mode`, `run_eval.py`, the scoring formula for normal runs, CODER_MAX_RETRIES. The benchmark results (Config B: 42%) remain valid — quick_mode is only used by the MCP server.
+
+**Implemented solution:** async job pattern — `fix_github_issue` starts the pipeline in a background thread and returns a job ID immediately (< 1s). A second tool `get_repair_status(job_id)` polls for the result. Client polls every 30s until status is `done` or `error`. No timeout possible — the client controls polling cadence.
+
+---
+
 ## 5. Explorer reads iteratively with a structured budget
 
 LLM decides what to read next at each iteration (upfront planning fails — can't predict import chains before reading).

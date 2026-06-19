@@ -29,6 +29,9 @@ pytest-asyncio
 # Linting (used by Critic agent)
 ruff
 
+# MCP (Model Context Protocol)
+mcp
+
 # Env management
 python-dotenv
 

@@ -109,6 +109,24 @@ Things that broke while running evals on Windows:
 
 ---
 
+## MCP integration — Claude Desktop timeout
+
+**Failure mode:** Claude Desktop MCP tool calls have a ~60s timeout. The full pipeline takes 1–2 minutes (5 LLM agents + pytest with 30s timeout per test run), so the tool call always timed out before returning a result. Claude Desktop showed the call as failed even when the pipeline was still running in the background.
+
+**Root causes encountered (in order):**
+1. `ModuleNotFoundError: No module named 'src'` — Claude Desktop doesn't add `cwd` to `PYTHONPATH`. Fixed by adding `"env": {"PYTHONPATH": "..."}` to the MCP config.
+2. `PermissionError: [WinError 5] Access is denied: 'logs'` — `setup_logging` uses relative path `os.makedirs("logs")`. Claude Desktop Store app sandbox doesn't allow this. Fixed by removing `setup_logging` from `mcp_server.py` and using `logging.basicConfig` to stderr instead.
+3. `PermissionError: [WinError 5] Access is denied: 'repos'` — Agents use `os.makedirs("repos")` as a relative path. Fixed by calling `os.chdir(PROJECT_DIR)` at the start of `_run_pipeline` to anchor all relative paths to the project root.
+4. **Timeout** — even after fixing all above, the pipeline exceeded Claude Desktop's MCP timeout.
+
+**Fix:** Added `quick_mode: bool` to `AgentState`. When `True`, the Critic skips pytest and uses the existing LLM semantic scoring fallback. Pipeline time drops from ~2min to ~30–40s, fitting under the timeout. `quick_mode=True` is the default in the MCP tool — users can pass `quick_mode=false` for full test-based scoring.
+
+**Files changed:** `src/state.py`, `src/agents/critic_agent.py`, `src/mcp_server.py`
+
+**Final fix:** implemented the async job pattern. `fix_github_issue` now starts the pipeline in a background thread and returns a job ID in < 1s. `get_repair_status(job_id)` polls for the result. No timeout possible.
+
+---
+
 ## Running totals (12 tasks, 2 repos)
 
 ```
