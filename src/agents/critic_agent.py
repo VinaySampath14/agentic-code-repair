@@ -35,33 +35,41 @@ def critic_agent(state: AgentState) -> AgentState:
             logger.warning("critic_agent: empty patch — scoring 0.0 without running tests")
             return state
 
-        # Determine test path — prefer SWE-bench FAIL_TO_PASS test IDs
-        fail_to_pass = state.get("fail_to_pass", [])
-        test_path = _build_test_path(repo_path, fail_to_pass)
-        logger.info(f"test_path: {test_path!r} (fail_to_pass={len(fail_to_pass)} tests)")
-
-        # Baseline: stash patch → run tests → restore patch
-        logger.info("running baseline tests (git stash)")
-        run_shell("git stash", cwd=repo_path)
-        baseline = run_pytest(repo_path, test_path=test_path)
-        tests_before = baseline.get("passed", 0)
-        logger.info(f"baseline: {tests_before} passing")
-        run_shell("git stash pop", cwd=repo_path)
-        logger.info("running post-patch tests")
-
-        # Post-patch results
-        post = run_pytest(repo_path, test_path=test_path)
-        tests_passed = post.get("passed", 0)
-        tests_failed = post.get("failed", 0)
-
-        # Linter
+        # Linter always runs (fast, no subprocess overhead)
         linter_result = run_linter(repo_path, state["broken_file"])
         linter_errors = linter_result.get("issue_count", 0)
         code_quality = 1.0 if linter_errors == 0 else 0.5
 
-        tests_ran = (tests_passed + tests_failed) > 0
+        tests_passed = 0
+        tests_failed = 0
+        tests_before = 0
+        post = {}
         test_pass_rate = 0.0
         no_regression  = 1.0
+
+        if state.get("quick_mode"):
+            # Skip pytest — use LLM semantic scoring directly (for MCP/demo use)
+            logger.info("quick_mode: skipping test runner, using LLM semantic scoring")
+            tests_ran = False
+        else:
+            # Determine test path — prefer SWE-bench FAIL_TO_PASS test IDs
+            fail_to_pass = state.get("fail_to_pass", [])
+            test_path = _build_test_path(repo_path, fail_to_pass)
+            logger.info(f"test_path: {test_path!r} (fail_to_pass={len(fail_to_pass)} tests)")
+
+            # Baseline: stash patch → run tests → restore patch
+            logger.info("running baseline tests (git stash)")
+            run_shell("git stash", cwd=repo_path)
+            baseline = run_pytest(repo_path, test_path=test_path)
+            tests_before = baseline.get("passed", 0)
+            logger.info(f"baseline: {tests_before} passing")
+            run_shell("git stash pop", cwd=repo_path)
+            logger.info("running post-patch tests")
+
+            post = run_pytest(repo_path, test_path=test_path)
+            tests_passed = post.get("passed", 0)
+            tests_failed = post.get("failed", 0)
+            tests_ran = (tests_passed + tests_failed) > 0
 
         if tests_ran:
             # Test-based scoring
@@ -181,7 +189,7 @@ def _generate_feedback(
         patch=state["patch"],
         changed_files=state["changed_files"],
         test_dir=repo_path,
-        retry_count=state["retry_count"],
+        retry_count=state["retry_count"] + 1,
     )
 
     prompt += (

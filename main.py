@@ -126,7 +126,7 @@ def main():
     print(f"broken_file    : {final['broken_file']}")
     print(f"fix_score      : {final['fix_score']}")
     print(f"explorer_confidence: {final.get('explorer_confidence', 'n/a')}")
-    print(f"retry_count    : {final.get('retry_count', 0)}")
+    print(f"retry_count    : {final.get('retry_count', 0) + 1}")
     print(f"pr_url         : {final['pr_url']}")
     print(f"error          : {final['error']}")
     print(f"len(trace)     : {len(final['trace'])}")
