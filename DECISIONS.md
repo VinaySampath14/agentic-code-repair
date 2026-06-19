@@ -101,12 +101,17 @@ else:
 
 The pipeline is exposed as an MCP server (`src/mcp_server.py`) so Claude Desktop and other MCP-aware clients can call `fix_github_issue(url)` as a tool. This is additive — the existing webhook (`src/webhook.py`) and CLI (`main.py`) are unchanged.
 
-**What was NOT migrated to GitHub MCP server:**
-- `read_file` and `get_repo_structure` — called 4–8 times per task in the Explorer hot loop; need the PyGithub caching layer to avoid rate limits
-- `create_pr` and `search_codebase` — candidates for GitHub MCP migration (low frequency, no caching needed); deferred to keep scope small
+**What was migrated to MCP (`src/github_mcp_server.py`):**
+- `search_codebase` — called once by Planner, no caching needed, silent fallback on failure
+- `create_pr` — called once by PR Agent, low frequency, no caching needed
 
-**Why build the MCP server but not fully consume GitHub MCP:**
-The goal was demonstrating both sides of the protocol (building a server + understanding consumption trade-offs) without regressing the 42% approval rate on SWE-bench Lite.
+**What stayed as direct PyGithub:**
+- `read_file` and `get_repo_structure` — called 4–8 times per task in the Explorer hot loop; need the PyGithub `_repo_cache` to avoid rate limits
+
+**How consumption works:** `github_tools.py` uses `mcp.client.stdio.stdio_client` + `ClientSession` to spawn `src/github_mcp_server.py` as a subprocess and call its tools via the MCP protocol. In production, swap `src/github_mcp_server.py` for the official `github/github-mcp-server` binary — no changes needed in the consumer.
+
+**Why build a local MCP server instead of using the official one:**
+Node.js is not available in this environment; the official GitHub MCP server requires npx. The local Python server demonstrates the same MCP client-server protocol and is a drop-in replacement.
 
 **What to say in interviews:** "I exposed the pipeline as an MCP server so any MCP-aware client can call it as a tool. I chose not to replace the GitHub API calls with the GitHub MCP server because my Explorer reads 4–8 files per task and needs the PyGithub caching layer to avoid rate limits. MCP is best for lower-frequency, externally-facing operations."
 
